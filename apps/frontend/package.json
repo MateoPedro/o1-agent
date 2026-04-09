@@ -1,0 +1,12 @@
+{
+  "name": "@o1-agent/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Add your dev command here\"",
+    "build": "echo \"Add your build command here\"",
+    "lint": "echo \"Add your lint command here\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
