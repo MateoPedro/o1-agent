@@ -1,0 +1,64 @@
+domains:
+  - age assurance / age verification
+  - AI agents & agentic tooling
+  - MCP (Model Context Protocol)
+  - AI safety
+  - social media regulation & compliance
+
+bio:
+  short: "Software Engineer IC4 at Meta, specializing in age assurance at scale and agentic AI tooling. Built systems protecting 50M+ U.S. teenagers and enabled compliance with world-first social media regulation."
+  medium: "Software Engineer IC4 at Meta Platforms, working across age assurance and AI infrastructure. Built state-specific age verification systems (Florida, Utah), engineered the world's first Under-16 enforcement flows for Australia's social media law (~544K accounts), and migrated 60+ agentic tools to the Model Context Protocol on the Ads AI team. Promoted from IC3 to IC4 in under a year with two consecutive Exceeds Expectations ratings."
+  full: "Software Engineer IC4 at Meta Platforms (San Francisco Bay Area), focused on age assurance infrastructure and agentic AI tooling. On the Age Assurance team, built jurisdiction-aware compliance systems for Florida HB 3 and Utah SB 152 (protecting 5M+ minors), launched the world's first Under-16 enforcement flows under Australia's Online Safety Amendment Act (~544K underage accounts), and engineered anti-circumvention systems preserving safeguarded environments for 50M+ U.S. teenagers. Standardized cross-platform age verification across Facebook, Instagram, and Threads (~20M U.S. users) and designed privacy-preserving storage infrastructure eliminating 100K+ redundant annual verification submissions. Served as System Reliability Champion for a 30+ engineer org and trained 1,000+ engineers as a Meta Bootcamp Presenter. On the Ads AI team, migrated 60+ agentic tools from Python/GraphQL to MCP, improving production response latency by 20%, and built an automated tool detection and registry system for Meta's agentic AI ecosystem. Promoted IC3→IC4 in ~1 year; two consecutive Exceeds Expectations ratings. B.S. Computer Science, Georgia Institute of Technology (Dean's List)."
+
+achievements:
+  - "Built Australia Under-16 enforcement flows for the world's first social media regulation of its kind — contributed to ~544K underage account actions across Instagram, Facebook, and Threads"
+  - "Engineered anti-circumvention and re-verification systems preserving safeguarded environments for 50M+ U.S. teenagers across Instagram and Facebook"
+  - "Built state-specific age verification compliance systems for Florida HB 3 and Utah SB 152, protecting 5M+ minors with infrastructure scalable to 15+ additional U.S. states"
+  - "Standardized cross-platform age verification across Facebook, Instagram, and Threads — expanded age protection coverage to ~20M U.S. users"
+  - "Designed privacy-preserving age verification storage infrastructure eliminating ~100K+ redundant annual verification submissions"
+  - "Migrated 60+ agentic tools from Python/GraphQL to MCP — improved production AI response latency by 20%"
+  - "Built automated tool detection and registry system for Meta's agentic AI tooling ecosystem"
+  - "Promoted IC3→IC4 in ~1 year (typical timeline: 2–3 years); 2x consecutive Exceeds Expectations performance ratings"
+  - "Served as System Reliability Champion for a 30+ engineer organization — defined bug SLAs, led SEV reviews, drove incident response"
+  - "Selected as Meta Engineering Bootcamp Presenter — delivered SEV response and testing culture training to 1,000+ engineers"
+
+story_modules:
+  australia_enforcement:
+    title: "World's First Under-16 Social Media Enforcement at Scale"
+    summary: "Engineered the automated detection, account disablement, and user education workflows enabling Meta's compliance with Australia's Online Safety Amendment Act 2024 — the world's first social media Under-16 regulation. Contributed to ~544K underage account actions across Instagram (330K), Facebook (174K), and Threads (40K). Covered by TIME, CNBC, PBS NewsHour, and others."
+    uscis_criteria:
+      - "critical role at distinguished organization"
+      - "published material about the person's work"
+
+  teen_accounts:
+    title: "Teen Accounts — Protecting 50M+ U.S. Teenagers"
+    summary: "Built anti-circumvention and re-verification systems for Meta's Teen Account experiences, preserving safeguarded environments for 50M+ U.S. teenagers across Instagram and Facebook. Covered by The Washington Post, Fox News, and Social Media Today."
+    uscis_criteria:
+      - "critical role at distinguished organization"
+      - "published material about the person's work"
+
+  state_compliance:
+    title: "State-Specific Age Verification — Florida & Utah"
+    summary: "Built jurisdiction-aware age verification compliance systems for Florida HB 3 and Utah SB 152, protecting 5M+ minors with reusable infrastructure designed to scale to 15+ additional U.S. states. Covered by Newsweek."
+    uscis_criteria:
+      - "critical role at distinguished organization"
+      - "original contributions of major significance"
+
+  mcp_migration:
+    title: "MCP Migration — Agentic AI Tooling at Scale"
+    summary: "Migrated 60+ agentic tools from Python/GraphQL to the Model Context Protocol (MCP) on Meta's Ads AI team, improving production AI response latency by 20%. Also built an automated tool detection and registry system for governance, compliance, and performance optimization of Meta's agentic AI ecosystem."
+    uscis_criteria:
+      - "critical role at distinguished organization"
+      - "original contributions of major significance"
+
+talk_topic_seeds:
+  - "Age verification at scale: engineering compliance for world-first social media regulation"
+  - "Building reliable agentic AI systems in production"
+  - "MCP in practice: migrating production AI tools to the Model Context Protocol"
+  - "Anti-circumvention systems: keeping safeguarded digital environments secure"
+  - "AI safety and child protection at billion-user scale"
+  - "From regulation to code: how engineers implement social media compliance"
+
+constraints:
+  geography: "Bay Area preferred, remote OK, no travel outside Bay Area unless toggled"
+  weekly_max_actions: 3
