@@ -8,8 +8,8 @@ celery_app = Celery(
 )
 
 celery_app.conf.beat_schedule = {
-    "scrape-cfps": {
-        "task": "app.tasks.scrape_cfps",
+    "discover-speaking-ops": {
+        "task": "app.tasks.discover_speaking_ops",
         "schedule": 86400.0,  # daily
     },
     "poll-outcomes": {
@@ -18,6 +18,9 @@ celery_app.conf.beat_schedule = {
     },
 }
 celery_app.conf.timezone = "UTC"
+
+# Import tasks so beat schedule can find them
+import app.tasks  # noqa: E402, F401
 
 
 @celery_app.task(name="app.tasks.health_check")

@@ -13,6 +13,7 @@ class OpportunityCreate(BaseModel):
     effort: Literal["low", "medium", "high"]
     source_url: str
     raw_text: str
+    location: str | None = None
 
 
 class OpportunityOut(BaseModel):
@@ -23,6 +24,7 @@ class OpportunityOut(BaseModel):
     topic_tags: list[str]
     deadline: date | None
     effort: str
+    location: str | None
     priority_score: float | None
     score_rationale: str | None
     status: str

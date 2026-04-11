@@ -4,6 +4,8 @@ domains:
   - MCP (Model Context Protocol)
   - AI safety
   - social media regulation & compliance
+  - software engineering (production systems, eng culture, career growth, big tech)
+  - immigration & breaking into tech as a foreigner (international student → US tech career)
 
 bio:
   short: "Software Engineer IC4 at Meta, specializing in age assurance at scale and agentic AI tooling. Built systems protecting 50M+ U.S. teenagers and enabled compliance with world-first social media regulation."
@@ -58,6 +60,11 @@ talk_topic_seeds:
   - "Anti-circumvention systems: keeping safeguarded digital environments secure"
   - "AI safety and child protection at billion-user scale"
   - "From regulation to code: how engineers implement social media compliance"
+  - "From France to Meta IC4: navigating the US tech industry as a foreign engineer"
+  - "What it actually takes to land a big tech role as an international student"
+  - "F-1 to full-time: the software engineer's guide to working in the US"
+  - "Lessons from IC3 to IC4 in under a year at Meta"
+  - "How to build credibility fast as a new grad at a big tech company"
 
 constraints:
   geography: "Bay Area preferred, remote OK, no travel outside Bay Area unless toggled"

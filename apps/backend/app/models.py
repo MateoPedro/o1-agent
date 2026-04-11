@@ -17,6 +17,7 @@ class Opportunity(Base):
     effort: Mapped[str] = mapped_column(String(10))         # low | medium | high
     source_url: Mapped[str] = mapped_column(String(500), unique=True)
     raw_text: Mapped[str] = mapped_column(Text)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)  # city or "virtual"
 
     fit_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     prestige_score: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -84,3 +85,15 @@ class AuditLog(Base):
 
     opportunity: Mapped["Opportunity | None"] = relationship(back_populates="audit_logs")
     draft: Mapped["Draft | None"] = relationship(back_populates="audit_logs")
+
+
+class Prompt(Base):
+    __tablename__ = "prompts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))          # e.g. "speaking_discovery"
+    version: Mapped[int] = mapped_column(default=1)
+    body: Mapped[str] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    performance_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
