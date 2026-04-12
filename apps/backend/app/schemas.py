@@ -13,6 +13,7 @@ class OpportunityCreate(BaseModel):
     event_date: date | None = None
     requirements: str
     effort: Literal["low", "medium", "high"]
+    effort_rationale: str | None = None
     source_url: str
     raw_text: str
     location: str | None = None
@@ -28,6 +29,7 @@ class OpportunityOut(BaseModel):
     deadline_status: str
     event_date: date | None
     effort: str
+    effort_rationale: str | None
     location: str | None
     source_url: str
     priority_score: float | None

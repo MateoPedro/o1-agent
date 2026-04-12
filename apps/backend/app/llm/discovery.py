@@ -32,7 +32,7 @@ For each open call you find, return structured data using the return_opportuniti
 - Deadline status: "specific" if there is a hard deadline date, "rolling" if applications are ongoing with no fixed cutoff, "unknown" if you could not determine this
 - Event date (ISO date string YYYY-MM-DD when the event takes place, null if unknown or recurring)
 - Requirements: what the event asks for (abstract length, bio, topics, etc.)
-- Effort to apply: low (< 30 min), medium (30–90 min), or high (> 90 min)
+- Effort to apply: low (< 30 min), medium (30–90 min), or high (> 90 min), plus a one-sentence explanation of why
 - URL to the speaker application or call for speakers page
 
 Prioritize events with clear professional recognition, named speaker credits, and international or national reach.
@@ -85,6 +85,7 @@ def discover_speaking_opportunities(db: Session) -> list[dict]:
                             "event_date": {"type": ["string", "null"], "description": "Date the event takes place as ISO date YYYY-MM-DD, or null if unknown/recurring"},
                             "requirements": {"type": "string"},
                             "effort": {"type": "string", "enum": ["low", "medium", "high"]},
+                            "effort_rationale": {"type": "string", "description": "One sentence explaining why this effort level was assigned."},
                             "url": {"type": "string"},
                         },
                         "required": ["event_name", "host_organization", "host_domain", "event_format", "location", "topic_tags", "deadline_status", "requirements", "effort", "url"],

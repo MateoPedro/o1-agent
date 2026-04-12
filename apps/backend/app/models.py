@@ -17,6 +17,7 @@ class Opportunity(Base):
     event_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     requirements: Mapped[str] = mapped_column(Text)
     effort: Mapped[str] = mapped_column(String(10))         # low | medium | high
+    effort_rationale: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_url: Mapped[str] = mapped_column(String(500), unique=True)
     raw_text: Mapped[str] = mapped_column(Text)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)  # city or "virtual"

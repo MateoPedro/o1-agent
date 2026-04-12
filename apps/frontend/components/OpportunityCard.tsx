@@ -54,6 +54,30 @@ function Badge({ label, style }: { label: string; style: string }) {
   )
 }
 
+function EffortBadge({ effort, rationale }: { effort: string; rationale: string | null }) {
+  const [open, setOpen] = useState(false)
+  const style = EFFORT_STYLES[effort] ?? "bg-slate-50 text-slate-600 border-slate-200"
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        onClick={() => rationale && setOpen(!open)}
+        className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${style} ${rationale ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
+      >
+        {`${effort} effort`}
+        {rationale && (open
+          ? <ChevronUp size={10} className="opacity-50" />
+          : <ChevronDown size={10} className="opacity-50" />
+        )}
+      </button>
+      {open && rationale && (
+        <p className="text-xs text-slate-500 leading-relaxed bg-slate-50 border border-slate-100 rounded-lg px-2.5 py-1.5">
+          {rationale}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function CriteriaSection({ criteria }: { criteria: UsciscriterionEntry[] }) {
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -129,12 +153,7 @@ export function OpportunityCard({ opp }: { opp: Opportunity }) {
               📍 {opp.location}
             </span>
           )}
-          {opp.effort && (
-            <Badge
-              label={`${opp.effort} effort`}
-              style={EFFORT_STYLES[opp.effort] ?? "bg-slate-50 text-slate-600 border-slate-200"}
-            />
-          )}
+          <EffortBadge effort={opp.effort} rationale={opp.effort_rationale} />
         </div>
 
         {/* Dates */}

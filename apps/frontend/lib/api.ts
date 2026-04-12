@@ -16,6 +16,7 @@ export interface Opportunity {
   deadline_status: "specific" | "rolling" | "unknown"
   event_date: string | null
   effort: string
+  effort_rationale: string | null
   location: string | null
   source_url: string
   priority_score: number | null
