@@ -55,6 +55,8 @@ class Draft(Base):
     sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    action_plan: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
     opportunity: Mapped["Opportunity"] = relationship(back_populates="drafts")
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="draft")
 

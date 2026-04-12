@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.database import engine, get_db
 from app import models
-from app.schemas import OpportunityOut
+from app.schemas import OpportunityOut, PipelineOpportunityOut, DraftOut
 from app.config import settings
 
 
@@ -64,12 +64,62 @@ def inbox(
     return opportunities
 
 
-@app.post("/opportunities/{opportunity_id}/approve", response_model=OpportunityOut)
-def approve_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
+@app.post("/opportunities/{opportunity_id}/plan", response_model=PipelineOpportunityOut)
+def create_plan(opportunity_id: int, db: Session = Depends(get_db)):
+    from app.llm.planner import create_action_plan
     opp = db.query(models.Opportunity).filter(models.Opportunity.id == opportunity_id).first()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
-    opp.status = "drafted"
+
+    action_plan = create_action_plan(opp, db)
+
+    draft = models.Draft(
+        opportunity_id=opp.id,
+        subject="",
+        body="",
+        action_plan=action_plan,
+    )
+    db.add(draft)
+    opp.status = "in_progress"
     db.commit()
     db.refresh(opp)
     return opp
+
+
+@app.patch("/drafts/{draft_id}/todos/{todo_id}/toggle", response_model=DraftOut)
+def toggle_todo(draft_id: int, todo_id: str, db: Session = Depends(get_db)):
+    draft = db.query(models.Draft).filter(models.Draft.id == draft_id).first()
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+
+    plan = draft.action_plan or {}
+    todos = plan.get("todos", [])
+    for todo in todos:
+        if todo["id"] == todo_id:
+            todo["completed"] = not todo["completed"]
+            break
+
+    draft.action_plan = {**plan, "todos": todos}
+    db.commit()
+    db.refresh(draft)
+    return draft
+
+
+@app.get("/pipeline", response_model=list[PipelineOpportunityOut])
+def pipeline(db: Session = Depends(get_db)):
+    from sqlalchemy.orm import joinedload
+    from app.schemas import DraftOut
+    opps = (
+        db.query(models.Opportunity)
+        .options(joinedload(models.Opportunity.drafts))
+        .filter(models.Opportunity.status != "discovered")
+        .order_by(models.Opportunity.updated_at.desc())
+        .all()
+    )
+    results = []
+    for opp in opps:
+        data = PipelineOpportunityOut.model_validate(opp)
+        if opp.drafts:
+            data.draft = DraftOut.model_validate(opp.drafts[-1])
+        results.append(data)
+    return results

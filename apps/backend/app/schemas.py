@@ -49,7 +49,31 @@ class DraftOut(BaseModel):
     form_fields: dict | None
     bio_variant_used: str | None
     story_module_used: str | None
+    action_plan: dict | None
     created_at: datetime
     approved_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+class PipelineOpportunityOut(BaseModel):
+    id: int
+    type: str
+    host: str
+    host_domain: str
+    topic_tags: list[str]
+    deadline: date | None
+    deadline_status: str
+    event_date: date | None
+    effort: str
+    effort_rationale: str | None
+    location: str | None
+    source_url: str
+    priority_score: float | None
+    score_rationale: str | None
+    uscis_criteria: list | None
+    status: str
+    created_at: datetime
+    draft: DraftOut | None = None
 
     model_config = {"from_attributes": True}

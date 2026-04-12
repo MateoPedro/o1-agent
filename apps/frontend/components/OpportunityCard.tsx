@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ExternalLink, CheckCircle, ChevronDown, ChevronUp } from "lucide-react"
-import { useApproveOpportunity } from "@/lib/queries"
+import { useCreatePlan } from "@/lib/queries"
 import type { Opportunity, UsciscriterionEntry } from "@/lib/api"
 
 const TYPE_STYLES: Record<string, string> = {
@@ -112,11 +112,10 @@ function CriteriaSection({ criteria }: { criteria: UsciscriterionEntry[] }) {
 }
 
 export function OpportunityCard({ opp }: { opp: Opportunity }) {
-  const approve = useApproveOpportunity()
-  const isApproved = opp.status === "drafted"
+  const plan = useCreatePlan()
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden ${isApproved ? "border-emerald-200 bg-emerald-50/30" : "border-slate-200"}`}>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden">
       {/* Card header */}
       <div className="px-5 pt-5 pb-4 border-b border-slate-100">
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -124,11 +123,6 @@ export function OpportunityCard({ opp }: { opp: Opportunity }) {
             label={opp.type.toUpperCase()}
             style={TYPE_STYLES[opp.type] ?? "bg-slate-50 text-slate-600 border-slate-200"}
           />
-          {isApproved && (
-            <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
-              <CheckCircle size={12} /> Approved
-            </span>
-          )}
         </div>
         <h3 className="font-semibold text-slate-900 text-base leading-snug">{opp.host}</h3>
         {opp.host_domain && (
@@ -210,16 +204,14 @@ export function OpportunityCard({ opp }: { opp: Opportunity }) {
         >
           <ExternalLink size={13} /> View
         </a>
-        {!isApproved && (
-          <button
-            onClick={() => approve.mutate(opp.id)}
-            disabled={approve.isPending}
-            className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl px-3 py-2 font-medium transition-colors disabled:opacity-50"
-          >
-            <CheckCircle size={13} />
-            {approve.isPending ? "Approving…" : "Approve"}
-          </button>
-        )}
+        <button
+          onClick={() => plan.mutate(opp.id)}
+          disabled={plan.isPending}
+          className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl px-3 py-2 font-medium transition-colors disabled:opacity-50"
+        >
+          <CheckCircle size={13} />
+          {plan.isPending ? "Planning…" : "Get Started"}
+        </button>
       </div>
     </div>
   )

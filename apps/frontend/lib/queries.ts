@@ -1,20 +1,40 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fetchInbox, approveOpportunity } from "./api"
+import { fetchInbox, fetchPipeline, createPlan, toggleTodo } from "./api"
 
 export function useInbox(limit = 10) {
   return useQuery({
     queryKey: ["inbox", limit],
     queryFn: () => fetchInbox(limit),
-    refetchInterval: 60_000, // auto-refresh every minute
+    refetchInterval: 60_000,
   })
 }
 
-export function useApproveOpportunity() {
+export function usePipeline() {
+  return useQuery({
+    queryKey: ["pipeline"],
+    queryFn: fetchPipeline,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useCreatePlan() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: approveOpportunity,
+    mutationFn: createPlan,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inbox"] })
+      queryClient.invalidateQueries({ queryKey: ["pipeline"] })
+    },
+  })
+}
+
+export function useToggleTodo() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ draftId, todoId }: { draftId: number; todoId: string }) =>
+      toggleTodo(draftId, todoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pipeline"] })
     },
   })
 }

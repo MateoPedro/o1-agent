@@ -1,14 +1,15 @@
 "use client"
 
-import { signOut } from "next-auth/react"
 import { useState } from "react"
-import { RefreshCw, LogOut } from "lucide-react"
-import { useInbox } from "@/lib/queries"
+import { RefreshCw } from "lucide-react"
+import { useInbox, usePipeline } from "@/lib/queries"
 import { OpportunityCard } from "@/components/OpportunityCard"
+import { Nav } from "@/components/Nav"
 
 export default function InboxPage() {
   const [limit, setLimit] = useState(10)
   const { data: opportunities, isLoading, error, refetch, isFetching } = useInbox(limit)
+  const { data: pipeline } = usePipeline()
 
   const avgScore =
     opportunities && opportunities.length > 0
@@ -17,38 +18,7 @@ export default function InboxPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">O</span>
-            </div>
-            <div>
-              <h1 className="text-base font-bold text-slate-900 leading-none">o1-agent</h1>
-              <p className="text-xs text-slate-400 mt-0.5">O-1A Opportunity Inbox</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => refetch()}
-              disabled={isFetching}
-              className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} />
-              Refresh
-            </button>
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <LogOut size={14} />
-              Sign out
-            </button>
-          </div>
-        </div>
-      </header>
+      <Nav pipelineCount={pipeline?.length} />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats bar */}
@@ -70,6 +40,15 @@ export default function InboxPage() {
             )}
           </div>
 
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} />
+            Refresh
+          </button>
+
           <select
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
@@ -83,7 +62,6 @@ export default function InboxPage() {
           </select>
         </div>
 
-        {/* States */}
         {isLoading && (
           <div className="text-center py-24 text-slate-400">
             <div className="animate-pulse text-lg">Loading opportunities...</div>
@@ -104,7 +82,6 @@ export default function InboxPage() {
           </div>
         )}
 
-        {/* Cards grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {opportunities?.map((opp) => (
             <OpportunityCard key={opp.id} opp={opp} />

@@ -6,6 +6,42 @@ export interface UsciscriterionEntry {
   rationale: string
 }
 
+export interface TodoItem {
+  id: string
+  task: string
+  detail: string
+  completed: boolean
+}
+
+export interface EmailDraft {
+  id: string
+  to: string
+  subject: string
+  body: string
+  sent: boolean
+}
+
+export interface ContentOutline {
+  suggested_angle: string
+  story_modules: string[]
+  title_ideas: string[]
+  key_points: string[]
+}
+
+export interface ActionPlan {
+  todos: TodoItem[]
+  email_drafts: EmailDraft[]
+  content_outline: ContentOutline
+}
+
+export interface Draft {
+  id: number
+  opportunity_id: number
+  action_plan: ActionPlan | null
+  created_at: string
+  approved_at: string | null
+}
+
 export interface Opportunity {
   id: number
   type: string
@@ -24,6 +60,7 @@ export interface Opportunity {
   uscis_criteria: UsciscriterionEntry[] | null
   status: string
   created_at: string
+  draft?: Draft | null
 }
 
 export async function fetchInbox(limit = 10): Promise<Opportunity[]> {
@@ -32,10 +69,24 @@ export async function fetchInbox(limit = 10): Promise<Opportunity[]> {
   return res.json()
 }
 
-export async function approveOpportunity(id: number): Promise<Opportunity> {
-  const res = await fetch(`${API_BASE}/opportunities/${id}/approve`, {
+export async function createPlan(id: number): Promise<Opportunity> {
+  const res = await fetch(`${API_BASE}/opportunities/${id}/plan`, {
     method: "POST",
   })
-  if (!res.ok) throw new Error("Failed to approve opportunity")
+  if (!res.ok) throw new Error("Failed to create plan")
+  return res.json()
+}
+
+export async function toggleTodo(draftId: number, todoId: string): Promise<Draft> {
+  const res = await fetch(`${API_BASE}/drafts/${draftId}/todos/${todoId}/toggle`, {
+    method: "PATCH",
+  })
+  if (!res.ok) throw new Error("Failed to toggle todo")
+  return res.json()
+}
+
+export async function fetchPipeline(): Promise<Opportunity[]> {
+  const res = await fetch(`${API_BASE}/pipeline`)
+  if (!res.ok) throw new Error("Failed to fetch pipeline")
   return res.json()
 }
