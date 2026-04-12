@@ -1,8 +1,9 @@
 "use client"
 
-import { ExternalLink, CheckCircle } from "lucide-react"
+import { useState } from "react"
+import { ExternalLink, CheckCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { useApproveOpportunity } from "@/lib/queries"
-import type { Opportunity } from "@/lib/api"
+import type { Opportunity, UsciscriterionEntry } from "@/lib/api"
 
 const TYPE_STYLES: Record<string, string> = {
   talk: "bg-indigo-50 text-indigo-700 border-indigo-100",
@@ -16,6 +17,18 @@ const EFFORT_STYLES: Record<string, string> = {
   low: "bg-green-50 text-green-700 border-green-100",
   medium: "bg-amber-50 text-amber-700 border-amber-100",
   high: "bg-red-50 text-red-700 border-red-100",
+}
+
+const STRENGTH_STYLES: Record<string, string> = {
+  strong: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  moderate: "bg-amber-50 text-amber-700 border-amber-200",
+  weak: "bg-slate-50 text-slate-500 border-slate-200",
+}
+
+const STRENGTH_DOT: Record<string, string> = {
+  strong: "bg-emerald-500",
+  moderate: "bg-amber-400",
+  weak: "bg-slate-300",
 }
 
 function ScoreBar({ score }: { score: number }) {
@@ -38,6 +51,39 @@ function Badge({ label, style }: { label: string; style: string }) {
     <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${style}`}>
       {label}
     </span>
+  )
+}
+
+function CriteriaSection({ criteria }: { criteria: UsciscriterionEntry[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  return (
+    <div>
+      <p className="text-xs text-slate-400 mb-1.5 font-medium uppercase tracking-wide">USCIS Criteria</p>
+      <div className="flex flex-col gap-1.5">
+        {criteria.map((c) => (
+          <div key={c.criterion} className={`rounded-xl border overflow-hidden ${STRENGTH_STYLES[c.strength]}`}>
+            <button
+              className="w-full flex items-center gap-2 px-3 py-2 text-left"
+              onClick={() => setExpanded(expanded === c.criterion ? null : c.criterion)}
+            >
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${STRENGTH_DOT[c.strength]}`} />
+              <span className="text-xs font-medium flex-1 leading-snug">{c.criterion}</span>
+              <span className="text-xs opacity-60 flex-shrink-0 uppercase tracking-wide">{c.strength}</span>
+              {expanded === c.criterion
+                ? <ChevronUp size={12} className="flex-shrink-0 opacity-50" />
+                : <ChevronDown size={12} className="flex-shrink-0 opacity-50" />
+              }
+            </button>
+            {expanded === c.criterion && (
+              <div className="px-3 pb-2.5 pt-0">
+                <p className="text-xs leading-relaxed opacity-80">{c.rationale}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -77,7 +123,7 @@ export function OpportunityCard({ opp }: { opp: Opportunity }) {
         )}
 
         {/* Meta pills */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 items-center">
           {opp.location && (
             <span className="text-xs text-slate-500 flex items-center gap-1">
               📍 {opp.location}
@@ -96,18 +142,9 @@ export function OpportunityCard({ opp }: { opp: Opportunity }) {
           )}
         </div>
 
-        {/* USCIS criteria */}
+        {/* USCIS criteria — expandable with rationale */}
         {opp.uscis_criteria && opp.uscis_criteria.length > 0 && (
-          <div>
-            <p className="text-xs text-slate-400 mb-1.5 font-medium uppercase tracking-wide">USCIS Criteria</p>
-            <div className="flex flex-wrap gap-1.5">
-              {opp.uscis_criteria.map((c) => (
-                <span key={c} className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-full">
-                  {c}
-                </span>
-              ))}
-            </div>
-          </div>
+          <CriteriaSection criteria={opp.uscis_criteria} />
         )}
 
         {/* Topic tags */}
@@ -121,7 +158,7 @@ export function OpportunityCard({ opp }: { opp: Opportunity }) {
           </div>
         )}
 
-        {/* Rationale */}
+        {/* Score rationale */}
         {opp.score_rationale && (
           <p className="text-xs text-slate-500 bg-slate-50 rounded-xl p-3 leading-relaxed border border-slate-100">
             {opp.score_rationale}

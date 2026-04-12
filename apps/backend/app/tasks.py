@@ -40,8 +40,8 @@ def discover_speaking_ops():
             # 2. Score (LLM) — updates opp in-place and commits
             score_opportunity(opp, db)
 
-            # 3. Map USCIS criteria (pure function) — requires prestige_score from step 2
-            opp.uscis_criteria = map_criteria(opp)
+            # 3. Map USCIS criteria (LLM) — requires prestige_score from step 2
+            opp.uscis_criteria = map_criteria(opp, db)
             db.commit()
 
             results["discovered"] += 1

@@ -1,5 +1,11 @@
 const API_BASE = "/api/backend"
 
+export interface UsciscriterionEntry {
+  criterion: string
+  strength: "strong" | "moderate" | "weak"
+  rationale: string
+}
+
 export interface Opportunity {
   id: number
   type: string
@@ -12,7 +18,7 @@ export interface Opportunity {
   source_url: string
   priority_score: number | null
   score_rationale: string | null
-  uscis_criteria: string[] | null
+  uscis_criteria: UsciscriterionEntry[] | null
   status: string
   created_at: string
 }
