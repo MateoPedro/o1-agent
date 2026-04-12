@@ -18,6 +18,7 @@ class Opportunity(Base):
     source_url: Mapped[str] = mapped_column(String(500), unique=True)
     raw_text: Mapped[str] = mapped_column(Text)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)  # city or "virtual"
+    uscis_criteria: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     fit_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     prestige_score: Mapped[float | None] = mapped_column(Float, nullable=True)

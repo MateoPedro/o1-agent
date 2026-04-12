@@ -27,6 +27,7 @@ class OpportunityOut(BaseModel):
     location: str | None
     priority_score: float | None
     score_rationale: str | None
+    uscis_criteria: list | None
     status: str
     created_at: datetime
 

@@ -3,6 +3,8 @@ from app.database import SessionLocal
 from app.models import Opportunity
 from app.llm.discovery import discover_speaking_opportunities
 from app.llm.normalizer import normalize_opportunity
+from app.llm.scorer import score_opportunity
+from app.llm.criteria import map_criteria
 
 
 @celery_app.task(name="app.tasks.discover_speaking_ops")
@@ -20,11 +22,11 @@ def discover_speaking_ops():
                 continue
 
             # Deduplicate on source_url
-            exists = db.query(Opportunity).filter_by(source_url=url).first()
-            if exists:
+            if db.query(Opportunity).filter_by(source_url=url).first():
                 results["skipped_duplicates"] += 1
                 continue
 
+            # 1. Normalize raw dict → typed Opportunity
             normalized = normalize_opportunity(raw, db)
             if not normalized:
                 results["failed"] += 1
@@ -33,6 +35,15 @@ def discover_speaking_ops():
             opp = Opportunity(**normalized.model_dump())
             db.add(opp)
             db.commit()
+            db.refresh(opp)
+
+            # 2. Score (LLM) — updates opp in-place and commits
+            score_opportunity(opp, db)
+
+            # 3. Map USCIS criteria (pure function) — requires prestige_score from step 2
+            opp.uscis_criteria = map_criteria(opp)
+            db.commit()
+
             results["discovered"] += 1
 
     finally:

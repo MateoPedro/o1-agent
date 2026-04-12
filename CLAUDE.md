@@ -84,6 +84,10 @@ audit_log       -- every outbound payload + every LLM call, with timestamps
 
 Status lifecycle for opportunities: `discovered → drafted → approved → submitted → accepted | rejected → completed`
 
+## Follow-up items (not yet built)
+
+- **USCIS criteria mapping refinement** — current mapping is a simple deterministic function (talk → `original contributions` + `leading role`). Needs a pass to tighten wording against the actual USCIS O-1A criterion definitions, and to handle edge cases (e.g. a prestigious invited keynote may also support `critical role at distinguished organization`). No LLM needed — pure rules per opportunity type.
+
 ## Hard rules (never relaxed)
 
 - **No automatic submissions.** `approved_at` must be set before any outbound action. This is enforced at the API layer, not just the UI.
