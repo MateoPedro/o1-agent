@@ -44,3 +44,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.db
+apps/frontend/.env.local
+apps/frontend/.next/
+apps/frontend/node_modules/

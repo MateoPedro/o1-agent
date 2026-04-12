@@ -25,6 +25,7 @@ class OpportunityOut(BaseModel):
     deadline: date | None
     effort: str
     location: str | None
+    source_url: str
     priority_score: float | None
     score_rationale: str | None
     uscis_criteria: list | None
