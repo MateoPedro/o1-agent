@@ -129,16 +129,31 @@ export function OpportunityCard({ opp }: { opp: Opportunity }) {
               📍 {opp.location}
             </span>
           )}
-          {opp.deadline && (
-            <span className="text-xs text-slate-500 flex items-center gap-1 ml-2">
-              📅 {opp.deadline}
-            </span>
-          )}
           {opp.effort && (
             <Badge
               label={`${opp.effort} effort`}
               style={EFFORT_STYLES[opp.effort] ?? "bg-slate-50 text-slate-600 border-slate-200"}
             />
+          )}
+        </div>
+
+        {/* Dates */}
+        <div className="flex flex-wrap gap-2">
+          {/* Application deadline */}
+          {opp.deadline_status === "specific" && opp.deadline ? (
+            <span className="text-xs text-slate-500 flex items-center gap-1">
+              📅 <span className="font-medium text-slate-600">Apply by</span> {opp.deadline}
+            </span>
+          ) : opp.deadline_status === "rolling" ? (
+            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border bg-blue-50 text-blue-600 border-blue-100">
+              Rolling deadline
+            </span>
+          ) : null}
+          {/* Event date */}
+          {opp.event_date && (
+            <span className="text-xs text-slate-500 flex items-center gap-1">
+              🗓 <span className="font-medium text-slate-600">Event</span> {opp.event_date}
+            </span>
           )}
         </div>
 

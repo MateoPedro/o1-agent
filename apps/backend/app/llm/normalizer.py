@@ -17,14 +17,16 @@ NORMALIZE_TOOL = {
             "host": {"type": "string"},
             "host_domain": {"type": "string"},
             "topic_tags": {"type": "array", "items": {"type": "string"}},
-            "deadline": {"type": ["string", "null"], "description": "ISO date YYYY-MM-DD or null"},
+            "deadline": {"type": ["string", "null"], "description": "Application deadline as ISO date YYYY-MM-DD or null"},
+            "deadline_status": {"type": "string", "enum": ["specific", "rolling", "unknown"], "description": "specific = hard cutoff date known; rolling = no fixed deadline; unknown = couldn't determine"},
+            "event_date": {"type": ["string", "null"], "description": "Date the event takes place as ISO date YYYY-MM-DD or null"},
             "requirements": {"type": "string"},
             "effort": {"type": "string", "enum": ["low", "medium", "high"]},
             "source_url": {"type": "string"},
             "raw_text": {"type": "string"},
             "location": {"type": ["string", "null"]},
         },
-        "required": ["type", "host", "host_domain", "topic_tags", "requirements", "effort", "source_url", "raw_text"],
+        "required": ["type", "host", "host_domain", "topic_tags", "deadline_status", "requirements", "effort", "source_url", "raw_text"],
     },
 }
 
@@ -57,19 +59,26 @@ Raw opportunity:
     for block in response.content:
         if block.type == "tool_use" and block.name == "save_opportunity":
             data = block.input
-            # Parse deadline string → date object
-            deadline = None
-            if data.get("deadline"):
+
+            def parse_date(val: str | None) -> date | None:
+                if not val:
+                    return None
                 try:
-                    deadline = date.fromisoformat(data["deadline"])
+                    return date.fromisoformat(val)
                 except ValueError:
-                    pass
+                    return None
+
+            deadline = parse_date(data.get("deadline"))
+            event_date = parse_date(data.get("event_date"))
+
             return OpportunityCreate(
                 type=data.get("type", "talk"),
                 host=data["host"],
                 host_domain=data["host_domain"],
                 topic_tags=data["topic_tags"],
                 deadline=deadline,
+                deadline_status=data.get("deadline_status", "unknown"),
+                event_date=event_date,
                 requirements=data["requirements"],
                 effort=data["effort"],
                 source_url=data["source_url"],

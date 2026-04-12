@@ -13,6 +13,8 @@ class Opportunity(Base):
     host_domain: Mapped[str] = mapped_column(String(255))
     topic_tags: Mapped[list] = mapped_column(JSON)
     deadline: Mapped[date | None] = mapped_column(Date, nullable=True)
+    deadline_status: Mapped[str] = mapped_column(String(20), default="unknown")  # specific | rolling | unknown
+    event_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     requirements: Mapped[str] = mapped_column(Text)
     effort: Mapped[str] = mapped_column(String(10))         # low | medium | high
     source_url: Mapped[str] = mapped_column(String(500), unique=True)

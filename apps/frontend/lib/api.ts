@@ -13,6 +13,8 @@ export interface Opportunity {
   host_domain: string
   topic_tags: string[]
   deadline: string | null
+  deadline_status: "specific" | "rolling" | "unknown"
+  event_date: string | null
   effort: string
   location: string | null
   source_url: string

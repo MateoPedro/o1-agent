@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
+from datetime import date
 from fastapi import FastAPI, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.database import engine, get_db
 from app import models
@@ -36,10 +38,25 @@ def inbox(
     db: Session = Depends(get_db),
 ):
     cap = limit or settings.weekly_max_actions
+    today = date.today()
     opportunities = (
         db.query(models.Opportunity)
         .filter(models.Opportunity.status == "discovered")
         .filter(models.Opportunity.priority_score.isnot(None))
+        # Exclude if application deadline has passed
+        .filter(
+            or_(
+                models.Opportunity.deadline_status != "specific",
+                models.Opportunity.deadline >= today,
+            )
+        )
+        # Exclude if the event itself has already happened
+        .filter(
+            or_(
+                models.Opportunity.event_date.is_(None),
+                models.Opportunity.event_date >= today,
+            )
+        )
         .order_by(models.Opportunity.priority_score.desc())
         .limit(cap)
         .all()

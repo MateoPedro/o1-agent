@@ -9,6 +9,8 @@ class OpportunityCreate(BaseModel):
     host_domain: str
     topic_tags: list[str]
     deadline: date | None = None
+    deadline_status: Literal["specific", "rolling", "unknown"] = "unknown"
+    event_date: date | None = None
     requirements: str
     effort: Literal["low", "medium", "high"]
     source_url: str
@@ -23,6 +25,8 @@ class OpportunityOut(BaseModel):
     host_domain: str
     topic_tags: list[str]
     deadline: date | None
+    deadline_status: str
+    event_date: date | None
     effort: str
     location: str | None
     source_url: str

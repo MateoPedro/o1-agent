@@ -28,7 +28,9 @@ For each open call you find, return structured data using the return_opportuniti
 - Event format: conference, meetup, panel, workshop, or online
 - Location: city name or "virtual"
 - Topic tags (pick 2-5 relevant tags)
-- Deadline (ISO date string YYYY-MM-DD if known, otherwise null)
+- Application deadline (ISO date string YYYY-MM-DD if known, otherwise null)
+- Deadline status: "specific" if there is a hard deadline date, "rolling" if applications are ongoing with no fixed cutoff, "unknown" if you could not determine this
+- Event date (ISO date string YYYY-MM-DD when the event takes place, null if unknown or recurring)
 - Requirements: what the event asks for (abstract length, bio, topics, etc.)
 - Effort to apply: low (< 30 min), medium (30–90 min), or high (> 90 min)
 - URL to the speaker application or call for speakers page
@@ -78,12 +80,14 @@ def discover_speaking_opportunities(db: Session) -> list[dict]:
                             "event_format": {"type": "string", "enum": ["conference", "meetup", "panel", "workshop", "online"]},
                             "location": {"type": "string"},
                             "topic_tags": {"type": "array", "items": {"type": "string"}},
-                            "deadline": {"type": ["string", "null"]},
+                            "deadline": {"type": ["string", "null"], "description": "Application deadline as ISO date YYYY-MM-DD, or null"},
+                            "deadline_status": {"type": "string", "enum": ["specific", "rolling", "unknown"], "description": "specific = hard cutoff date known; rolling = no fixed deadline; unknown = couldn't determine"},
+                            "event_date": {"type": ["string", "null"], "description": "Date the event takes place as ISO date YYYY-MM-DD, or null if unknown/recurring"},
                             "requirements": {"type": "string"},
                             "effort": {"type": "string", "enum": ["low", "medium", "high"]},
                             "url": {"type": "string"},
                         },
-                        "required": ["event_name", "host_organization", "host_domain", "event_format", "location", "topic_tags", "requirements", "effort", "url"],
+                        "required": ["event_name", "host_organization", "host_domain", "event_format", "location", "topic_tags", "deadline_status", "requirements", "effort", "url"],
                     },
                 }
             },
