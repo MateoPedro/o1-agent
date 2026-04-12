@@ -18,9 +18,7 @@ celery_app.conf.beat_schedule = {
     },
 }
 celery_app.conf.timezone = "UTC"
-
-# Import tasks so beat schedule can find them
-import app.tasks  # noqa: E402, F401
+celery_app.autodiscover_tasks(["app"])
 
 
 @celery_app.task(name="app.tasks.health_check")
