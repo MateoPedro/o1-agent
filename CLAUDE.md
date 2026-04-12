@@ -47,13 +47,15 @@ npm run dev
 The system has four layers:
 
 ### Layer 1 — Discovery (Celery beat, runs daily)
-Scraper workers fetch raw opportunity data from public sources. Each has its own class:
-- `HackathonScraper` — Devpost, Lablab, Devfolio (open judging applications)
-- `CFPScraper` — Sessionize, Papercall, individual conference sites
-- `AssociationScraper` — IEEE, ACM, AI/ML professional org membership pages
-- `WritingOpsScraper` — "Write for us" pages at tech publications
+Discovery is LLM-driven — no custom scrapers. Claude (with web search enabled) runs a versioned discovery prompt stored in the `prompts` DB table and returns structured opportunity objects directly via tool use. Adding a new source type = updating the prompt, not writing a parser.
 
-After scraping, an LLM call (Claude, structured output via tool use) normalizes each raw blob into a typed `Opportunity` Pydantic model. All LLM prompts + responses are written to the `audit_log` table with the opportunity ID.
+Each opportunity vertical has its own discovery prompt:
+- **Speaking** (`discover_speaking_ops`) — conferences, panels, workshops, meetups, online events. Domains: AI agents, age verification, MCP, AI safety, social media compliance, software engineering, immigration/breaking into tech. Location preference: Bay Area or virtual (location feeds into scoring, not hard-filtered).
+- **Judging** (`discover_judging_ops`) — hackathon judge/mentor roles, program committees, accelerator demo days, grant panels. Formally invited roles prioritized over open applications.
+- **Publishing** (`discover_publishing_ops`) — guest blog posts, tech magazines, practitioner "research" outlets, scholarly article calls. Outlets like Towards Data Science, The Pragmatic Engineer, IEEE Spectrum, ACM Queue.
+- **Memberships** (`discover_membership_ops`) — IEEE, ACM, curated AI/ML professional org membership pages.
+
+All LLM prompts + responses are written to the `audit_log` table. Discovery prompts are versioned in the `prompts` table and improve over time based on conversion metrics.
 
 ### Layer 2 — Reasoning (LLM micro-agents)
 Four specialized LLM components, each with its own system prompt — not one monolithic agent:
@@ -92,32 +94,33 @@ Status lifecycle for opportunities: `discovered → drafted → approved → sub
 
 ## Implementation plan
 
-The build is structured in 4 slices, each adding a new opportunity vertical on top of the shared core loop.
+The build is structured in 5 slices, each adding a new opportunity vertical on top of the shared core loop. All discovery is LLM-driven (Claude web search + versioned prompts) — no custom scrapers.
 
-### Slice 1 — CFP / Talk vertical (days 1–21) ← start here
-Validates the full core loop end-to-end. Chosen first because CFP submissions (invited speaker) produce strong USCIS evidence (`original contributions` + `leading role`) and the draft assets (title, abstract, bio) are reusable across many events.
+### Slice 1 — Speaking vertical ← in progress
+Validates the full core loop end-to-end. Speaking opportunities (invited speaker) produce strong USCIS evidence (`original contributions` + `leading role`) and the draft assets (title, abstract, bio) are reusable across many events.
 
-| Phase | Days | Deliverable |
+| Phase | Status | Deliverable |
 |---|---|---|
-| Foundation | 1–3 | Repo, FastAPI `/health`, SQLite schema, Celery+Redis, Gmail OAuth2 |
-| CFP Discovery | 4–7 | `CFPScraper` for Sessionize + Papercall feeding real opportunities into DB |
-| Scoring + Inbox | 8–11 | Scoring engine + `GET /inbox` + Streamlit inbox UI |
-| Talk Drafting + Approval | 12–15 | Abstract + bio drafter, `approved_at` gate enforced at API layer |
-| Submission + Tracking | 16–18 | Gmail send + Playwright form filler + outcome tracker |
-| Hardening | 19–21 | Error handling, deadline filter, ops runbook |
-
-**Phase 1 exit criteria:** repo boots, SQLite schema created on startup, YAML profile loads, Celery processes a dummy task, Gmail token refreshes programmatically.
+| Foundation | ✅ Done | Repo, FastAPI `/health`, SQLite schema, Celery+Redis, YAML profile |
+| Speaking Discovery | ✅ Done | `discover_speaking_ops` Celery task — Claude web search → typed `Opportunity` objects in DB, prompt versioned in `prompts` table |
+| Scoring + Inbox | Next | Scoring engine + `GET /inbox` + Streamlit inbox UI |
+| Talk Drafting + Approval | Planned | Abstract + bio drafter, `approved_at` gate enforced at API layer |
+| Submission + Tracking | Planned | Gmail send + Playwright form filler + outcome tracker |
+| Hardening | Planned | Error handling, deadline filter, ops runbook |
 
 ### Slice 2 — Judging vertical
-`HackathonScraper` for Devpost + Lablab. Judging opportunities may already be lined up manually, so the scraper adds automation on top of an existing flow.
+`discover_judging_ops` — hackathon judge/mentor roles, program committees, accelerator demo days, grant panels. Formally invited roles prioritized. Judging opportunities may already be lined up manually; the discovery task adds automation on top.
 
-### Slice 3 — Memberships + evidence logger (weeks 6–7)
-`AssociationScraper` (IEEE, ACM, curated AI/ML orgs), membership statement drafter, and the evidence logger with criterion-filtered Markdown export.
+### Slice 3 — Publishing vertical
+`discover_publishing_ops` — guest blog posts, tech magazines, practitioner "research" outlets, scholarly article calls. Target outlets: Towards Data Science, The Pragmatic Engineer, IEEE Spectrum, ACM Queue, and similar. Maps to USCIS `authorship` criterion.
 
-### Slice 4 — Feedback loop (week 8+)
-Conversion metrics tracking (discovered → applied → accepted per source), scorer weight tuning, draft style improvement from acceptance patterns.
+### Slice 4 — Memberships + evidence logger
+`discover_membership_ops` — IEEE, ACM, curated AI/ML professional org membership pages. Membership statement drafter. Evidence logger with criterion-filtered Markdown export.
 
-**Deferred:** `WritingOpsScraper`, Postgres migration (when concurrent workers needed), Next.js frontend (Streamlit is the MVP UI).
+### Slice 5 — Feedback loop
+Conversion metrics tracking (discovered → applied → accepted per source), scorer weight tuning, discovery prompt refinement from acceptance patterns.
+
+**Deferred:** Postgres migration (when concurrent workers needed), Next.js frontend (Streamlit is the MVP UI).
 
 ## Reference docs
 
