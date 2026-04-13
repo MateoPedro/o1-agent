@@ -189,12 +189,20 @@ function ContentOutlineSection({ outline }: { outline: ContentOutline }) {
   )
 }
 
+const REPLY_STYLES = {
+  accepted: { banner: "bg-emerald-50 border-emerald-200", text: "text-emerald-700", label: "Accepted" },
+  rejected: { banner: "bg-red-50 border-red-200", text: "text-red-600", label: "Rejected" },
+  more_info_needed: { banner: "bg-amber-50 border-amber-200", text: "text-amber-700", label: "Reply received" },
+}
+
 export function ActionPlanCard({ opp }: { opp: Opportunity }) {
   const plan = opp.draft?.action_plan
   const draftId = opp.draft?.id
+  const reply = opp.draft?.reply_classification
+  const replyStyle = reply ? REPLY_STYLES[reply] : null
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+    <div className={`bg-white rounded-2xl border shadow-sm flex flex-col overflow-hidden ${replyStyle ? replyStyle.banner : "border-slate-200"}`}>
       {/* Header */}
       <div className="px-5 pt-5 pb-4 border-b border-slate-100">
         <div className="flex items-start justify-between gap-3 mb-2">
@@ -212,6 +220,16 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
         </div>
         <h3 className="font-semibold text-slate-900 text-base leading-snug">{opp.host}</h3>
         {opp.host_domain && <p className="text-xs text-slate-400 mt-0.5">{opp.host_domain}</p>}
+
+        {/* Reply banner */}
+        {replyStyle && (
+          <div className={`mt-3 rounded-xl px-3 py-2 border ${replyStyle.banner}`}>
+            <p className={`text-xs font-semibold ${replyStyle.text}`}>{replyStyle.label}</p>
+            {opp.draft?.reply_summary && (
+              <p className={`text-xs mt-0.5 ${replyStyle.text} opacity-80`}>{opp.draft.reply_summary}</p>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 mt-3">
           {opp.event_date && (

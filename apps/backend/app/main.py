@@ -99,7 +99,7 @@ def send_email(draft_id: int, email_id: str, db: Session = Depends(get_db)):
     if not target:
         raise HTTPException(status_code=404, detail="Email draft not found")
 
-    message_id = gmail_send(
+    message_id, thread_id = gmail_send(
         to=target["to"],
         subject=target["subject"],
         body=target["body"],
@@ -109,6 +109,7 @@ def send_email(draft_id: int, email_id: str, db: Session = Depends(get_db)):
     target["sent"] = True
     draft.action_plan = {**plan, "email_drafts": email_drafts}
     draft.message_id = message_id
+    draft.thread_id = thread_id
 
     # Move opportunity to submitted
     opp = db.query(models.Opportunity).filter(models.Opportunity.id == draft.opportunity_id).first()

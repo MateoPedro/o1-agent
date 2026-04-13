@@ -38,6 +38,10 @@ export interface Draft {
   id: number
   opportunity_id: number
   action_plan: ActionPlan | null
+  message_id: string | null
+  thread_id: string | null
+  reply_classification: "accepted" | "rejected" | "more_info_needed" | null
+  reply_summary: string | null
   created_at: string
   approved_at: string | null
 }

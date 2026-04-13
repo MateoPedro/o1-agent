@@ -54,6 +54,9 @@ class Draft(Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    thread_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reply_classification: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    reply_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     action_plan: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 

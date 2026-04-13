@@ -50,6 +50,10 @@ class DraftOut(BaseModel):
     bio_variant_used: str | None
     story_module_used: str | None
     action_plan: dict | None
+    message_id: str | None
+    thread_id: str | None
+    reply_classification: str | None
+    reply_summary: str | None
     created_at: datetime
     approved_at: datetime | None
 
