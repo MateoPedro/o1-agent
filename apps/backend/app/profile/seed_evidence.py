@@ -42,14 +42,7 @@ def seed_profile_evidence(db: Session) -> int:
                 "rationale": module["summary"],
             })
 
-        # Use URL from module if available (e.g. youtube), otherwise Meta
-        public_url = module.get("url", "https://meta.com")
-        host_name = "Meta Platforms" if not module.get("url") else "Jack of All Trades / YouTube"
-        host_description = (
-            "Global technology company — Facebook, Instagram, WhatsApp, Threads (3B+ users)"
-            if not module.get("url")
-            else "YouTube podcast with 300,000+ Instagram followers"
-        )
+        public_url, host_name, host_description = _host_info(module_name, module)
         activity_type = _activity_type(module_name)
 
         evidence = Evidence(
@@ -83,3 +76,36 @@ def _activity_type(module_name: str) -> str:
         "internal_evaluations": "judge",
     }
     return mapping.get(module_name, "employment")
+
+
+def _host_info(module_name: str, module: dict) -> tuple[str, str, str]:
+    """Returns (public_url, host_name, host_description)."""
+    overrides = {
+        "hackathon_judging": (
+            "https://princeton.edu",
+            "Princeton, UCLA & UC Davis Hackathons",
+            "University hackathons — judge and mentor roles evaluating student projects in software engineering, AI, and product design",
+        ),
+        "youtube_appearance": (
+            module.get("url", "https://youtu.be/7r9TsnzK-ms"),
+            "Jack of All Trades Podcast",
+            "YouTube podcast with 300,000+ Instagram followers — featured Mateo as expert on breaking into big tech as a foreign engineer",
+        ),
+        "high_salary": (
+            "https://www.bls.gov/ooh/computer-and-information-technology/software-developers.htm",
+            "Compensation Benchmark",
+            "BLS May 2024 national median for software developers ($133,080) — Mateo's $294K total comp is 2.2x the median",
+        ),
+        "internal_evaluations": (
+            "https://meta.com",
+            "Meta Platforms — Internal Evaluation Roles",
+            "PSC peer reviews, RFC reviews, intern mentorship, Bootcamp Presenter, and System Reliability Champion within Meta",
+        ),
+    }
+    if module_name in overrides:
+        return overrides[module_name]
+    return (
+        "https://meta.com",
+        "Meta Platforms",
+        "Global technology company — Facebook, Instagram, WhatsApp, Threads (3B+ users)",
+    )
