@@ -13,6 +13,14 @@ from app.config import settings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     models.Base.metadata.create_all(bind=engine)
+    # Seed profile evidence on startup (no-op if already seeded)
+    from app.database import SessionLocal as _Session
+    from app.profile.seed_evidence import seed_profile_evidence
+    _db = _Session()
+    try:
+        seed_profile_evidence(_db)
+    finally:
+        _db.close()
     yield
 
 

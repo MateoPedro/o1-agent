@@ -99,6 +99,7 @@ export interface Evidence {
   public_url: string
   uscis_criteria: Array<{ criterion: string; strength: string; rationale: string }>
   supporting_details: Record<string, unknown>
+  source: "profile" | "opportunity"
   created_at: string
 }
 

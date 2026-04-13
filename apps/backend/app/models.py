@@ -68,7 +68,7 @@ class Evidence(Base):
     __tablename__ = "evidence"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    opportunity_id: Mapped[int] = mapped_column(ForeignKey("opportunities.id"))
+    opportunity_id: Mapped[int | None] = mapped_column(ForeignKey("opportunities.id"), nullable=True)
     activity_type: Mapped[str] = mapped_column(String(50))
     host_name: Mapped[str] = mapped_column(String(255))
     host_description: Mapped[str] = mapped_column(Text)
@@ -76,6 +76,7 @@ class Evidence(Base):
     public_url: Mapped[str] = mapped_column(String(500))
     uscis_criteria: Mapped[list] = mapped_column(JSON)      # e.g. ["judging", "leading role"]
     supporting_details: Mapped[dict] = mapped_column(JSON)  # audience size, acceptance rate, etc.
+    source: Mapped[str] = mapped_column(String(20), default="opportunity")  # opportunity | profile
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     opportunity: Mapped["Opportunity"] = relationship(back_populates="evidence")

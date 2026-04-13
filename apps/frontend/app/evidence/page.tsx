@@ -30,8 +30,11 @@ function EvidenceCard({ entry }: { entry: Evidence }) {
         </a>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
         <span className="text-xs bg-slate-50 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full capitalize">{entry.activity_type}</span>
+        {entry.source === "profile" && (
+          <span className="text-xs bg-violet-50 text-violet-600 border border-violet-100 px-2 py-0.5 rounded-full font-medium">Pre-existing work</span>
+        )}
         <span className="text-xs text-slate-500">🗓 {entry.date}</span>
       </div>
 

@@ -85,7 +85,7 @@ class PipelineOpportunityOut(BaseModel):
 
 class EvidenceOut(BaseModel):
     id: int
-    opportunity_id: int
+    opportunity_id: int | None
     activity_type: str
     host_name: str
     host_description: str
@@ -93,6 +93,7 @@ class EvidenceOut(BaseModel):
     public_url: str
     uscis_criteria: list
     supporting_details: dict
+    source: str
     created_at: datetime
 
     model_config = {"from_attributes": True}
