@@ -85,6 +85,14 @@ export async function toggleTodo(draftId: number, todoId: string): Promise<Draft
   return res.json()
 }
 
+export async function sendEmail(draftId: number, emailId: string): Promise<Draft> {
+  const res = await fetch(`${API_BASE}/drafts/${draftId}/emails/${emailId}/send`, {
+    method: "POST",
+  })
+  if (!res.ok) throw new Error("Failed to send email")
+  return res.json()
+}
+
 export async function fetchPipeline(): Promise<Opportunity[]> {
   const res = await fetch(`${API_BASE}/pipeline`)
   if (!res.ok) throw new Error("Failed to fetch pipeline")

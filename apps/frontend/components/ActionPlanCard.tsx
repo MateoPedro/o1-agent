@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail } from "lucide-react"
-import { useToggleTodo } from "@/lib/queries"
+import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail, Send } from "lucide-react"
+import { useToggleTodo, useSendEmail } from "@/lib/queries"
 import type { Opportunity, TodoItem, EmailDraft, ContentOutline } from "@/lib/api"
 
 const STATUS_STYLES: Record<string, string> = {
@@ -69,8 +69,9 @@ function TodoList({ todos, draftId }: { todos: TodoItem[]; draftId: number }) {
   )
 }
 
-function EmailDraftSection({ drafts }: { drafts: EmailDraft[] }) {
+function EmailDraftSection({ drafts, draftId }: { drafts: EmailDraft[]; draftId: number }) {
   const [open, setOpen] = useState<string | null>(null)
+  const sendMutation = useSendEmail()
 
   if (drafts.length === 0) return null
 
@@ -79,25 +80,38 @@ function EmailDraftSection({ drafts }: { drafts: EmailDraft[] }) {
       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Email Drafts</p>
       <div className="flex flex-col gap-1.5">
         {drafts.map((draft) => (
-          <div key={draft.id} className="rounded-xl border border-slate-200 overflow-hidden">
+          <div key={draft.id} className={`rounded-xl border overflow-hidden ${draft.sent ? "border-emerald-100 bg-emerald-50/40" : "border-slate-200"}`}>
             <button
               className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
               onClick={() => setOpen(open === draft.id ? null : draft.id)}
             >
-              <Mail size={13} className="text-slate-400 flex-shrink-0" />
+              <Mail size={13} className={draft.sent ? "text-emerald-500" : "text-slate-400"} />
               <span className="text-sm font-medium text-slate-700 flex-1 truncate">{draft.subject}</span>
-              {open === draft.id ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+              {draft.sent
+                ? <span className="text-xs text-emerald-600 font-medium flex-shrink-0">Sent</span>
+                : open === draft.id ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />
+              }
             </button>
             {open === draft.id && (
               <div className="px-3 pb-3 border-t border-slate-100">
                 {draft.to && (
-                  <p className="text-xs text-slate-400 mt-2 mb-1">To: {draft.to}</p>
+                  <p className="text-xs text-slate-400 mt-2">To: {draft.to}</p>
                 )}
                 <pre className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed font-sans mt-2 bg-slate-50 rounded-lg p-3">
                   {draft.body}
                 </pre>
-                <div className="flex justify-end mt-2">
+                <div className="flex items-center justify-between mt-2">
                   <CopyButton text={draft.body} />
+                  {!draft.sent && (
+                    <button
+                      onClick={() => sendMutation.mutate({ draftId, emailId: draft.id })}
+                      disabled={sendMutation.isPending}
+                      className="flex items-center gap-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Send size={11} />
+                      {sendMutation.isPending ? "Sending…" : "Send"}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -218,7 +232,7 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
           {plan.todos?.length > 0 && draftId && (
             <TodoList todos={plan.todos} draftId={draftId} />
           )}
-          <EmailDraftSection drafts={plan.email_drafts ?? []} />
+          {draftId && <EmailDraftSection drafts={plan.email_drafts ?? []} draftId={draftId} />}
           {plan.content_outline && (
             <ContentOutlineSection outline={plan.content_outline} />
           )}

@@ -12,3 +12,5 @@ httpx
 beautifulsoup4
 playwright
 pyyaml
+google-auth-oauthlib
+google-api-python-client

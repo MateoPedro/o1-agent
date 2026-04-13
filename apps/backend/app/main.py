@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import date, datetime
 from fastapi import FastAPI, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import or_
@@ -84,6 +84,47 @@ def create_plan(opportunity_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(opp)
     return opp
+
+
+@app.post("/drafts/{draft_id}/emails/{email_id}/send", response_model=DraftOut)
+def send_email(draft_id: int, email_id: str, db: Session = Depends(get_db)):
+    from app.gmail import send_email as gmail_send
+    draft = db.query(models.Draft).filter(models.Draft.id == draft_id).first()
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+
+    plan = draft.action_plan or {}
+    email_drafts = plan.get("email_drafts", [])
+    target = next((e for e in email_drafts if e["id"] == email_id), None)
+    if not target:
+        raise HTTPException(status_code=404, detail="Email draft not found")
+
+    message_id = gmail_send(
+        to=target["to"],
+        subject=target["subject"],
+        body=target["body"],
+    )
+
+    # Mark email as sent
+    target["sent"] = True
+    draft.action_plan = {**plan, "email_drafts": email_drafts}
+    draft.message_id = message_id
+
+    # Move opportunity to submitted
+    opp = db.query(models.Opportunity).filter(models.Opportunity.id == draft.opportunity_id).first()
+    if opp:
+        opp.status = "submitted"
+
+    db.add(AuditLog(
+        opportunity_id=draft.opportunity_id,
+        draft_id=draft.id,
+        direction="outbound",
+        payload={"to": target["to"], "subject": target["subject"], "gmail_message_id": message_id},
+        timestamp=datetime.utcnow(),
+    ))
+    db.commit()
+    db.refresh(draft)
+    return draft
 
 
 @app.patch("/drafts/{draft_id}/todos/{todo_id}/toggle", response_model=DraftOut)

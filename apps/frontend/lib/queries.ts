@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fetchInbox, fetchPipeline, createPlan, toggleTodo } from "./api"
+import { fetchInbox, fetchPipeline, createPlan, toggleTodo, sendEmail } from "./api"
 
 export function useInbox(limit = 10) {
   return useQuery({
@@ -23,6 +23,17 @@ export function useCreatePlan() {
     mutationFn: createPlan,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inbox"] })
+      queryClient.invalidateQueries({ queryKey: ["pipeline"] })
+    },
+  })
+}
+
+export function useSendEmail() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ draftId, emailId }: { draftId: number; emailId: string }) =>
+      sendEmail(draftId, emailId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pipeline"] })
     },
   })
