@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 from app.config import settings
 
 celery_app = Celery(
@@ -7,17 +8,17 @@ celery_app = Celery(
     backend=settings.redis_url,
 )
 
+celery_app.conf.timezone = "America/Los_Angeles"
 celery_app.conf.beat_schedule = {
     "discover-speaking-ops": {
         "task": "app.tasks.discover_speaking_ops",
-        "schedule": 86400.0,  # daily
+        "schedule": crontab(hour=16, minute=0, day_of_week="friday"),  # Fridays 4pm PT
     },
     "poll-outcomes": {
         "task": "app.tasks.poll_outcomes",
-        "schedule": 3600.0,  # hourly
+        "schedule": crontab(hour=17, minute=0),  # Daily 5pm PT
     },
 }
-celery_app.conf.timezone = "UTC"
 celery_app.autodiscover_tasks(["app"])
 
 

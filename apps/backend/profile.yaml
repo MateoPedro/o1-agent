@@ -1,97 +1,152 @@
 domains:
-  - age assurance / age verification
-  - AI agents & agentic tooling
-  - MCP (Model Context Protocol)
-  - AI safety
-  - social media regulation & compliance
-  - software engineering (production systems, eng culture, career growth, big tech)
-  - immigration & breaking into tech as a foreigner (international student → US tech career)
-
+- age assurance / age verification
+- AI agents & agentic tooling
+- MCP (Model Context Protocol)
+- AI safety
+- social media regulation & compliance
+- software engineering (production systems, eng culture, career growth, big tech)
+- immigration & breaking into tech as a foreigner (international student → US tech
+  career)
 bio:
-  short: "Software Engineer IC4 at Meta, specializing in age assurance at scale and agentic AI tooling. Built systems protecting 50M+ U.S. teenagers and enabled compliance with world-first social media regulation."
-  medium: "Software Engineer IC4 at Meta Platforms, working across age assurance and AI infrastructure. Built state-specific age verification systems (Florida, Utah), engineered the world's first Under-16 enforcement flows for Australia's social media law (~544K accounts), and migrated 60+ agentic tools to the Model Context Protocol on the Ads AI team. Promoted from IC3 to IC4 in under a year with two consecutive Exceeds Expectations ratings."
-  full: "Software Engineer IC4 at Meta Platforms (San Francisco Bay Area), focused on age assurance infrastructure and agentic AI tooling. On the Age Assurance team, built jurisdiction-aware compliance systems for Florida HB 3 and Utah SB 152 (protecting 5M+ minors), launched the world's first Under-16 enforcement flows under Australia's Online Safety Amendment Act (~544K underage accounts), and engineered anti-circumvention systems preserving safeguarded environments for 50M+ U.S. teenagers. Standardized cross-platform age verification across Facebook, Instagram, and Threads (~20M U.S. users) and designed privacy-preserving storage infrastructure eliminating 100K+ redundant annual verification submissions. Served as System Reliability Champion for a 30+ engineer org and trained 1,000+ engineers as a Meta Bootcamp Presenter. On the Ads AI team, migrated 60+ agentic tools from Python/GraphQL to MCP, improving production response latency by 20%, and built an automated tool detection and registry system for Meta's agentic AI ecosystem. Promoted IC3→IC4 in ~1 year; two consecutive Exceeds Expectations ratings. B.S. Computer Science, Georgia Institute of Technology (Dean's List)."
-
+  short: Software Engineer IC4 at Meta, specializing in age assurance at scale and
+    agentic AI tooling. Built systems protecting 50M+ U.S. teenagers and enabled compliance
+    with world-first social media regulation.
+  medium: Software Engineer IC4 at Meta Platforms, working across age assurance and
+    AI infrastructure. Built state-specific age verification systems (Florida, Utah),
+    engineered the world's first Under-16 enforcement flows for Australia's social
+    media law (~544K accounts), and migrated 60+ agentic tools to the Model Context
+    Protocol on the Ads AI team. Promoted from IC3 to IC4 in under a year with two
+    consecutive Exceeds Expectations ratings.
+  full: Software Engineer IC4 at Meta Platforms (San Francisco Bay Area), focused
+    on age assurance infrastructure and agentic AI tooling. On the Age Assurance team,
+    built jurisdiction-aware compliance systems for Florida HB 3 and Utah SB 152 (protecting
+    5M+ minors), launched the world's first Under-16 enforcement flows under Australia's
+    Online Safety Amendment Act (~544K underage accounts), and engineered anti-circumvention
+    systems preserving safeguarded environments for 50M+ U.S. teenagers. Standardized
+    cross-platform age verification across Facebook, Instagram, and Threads (~20M
+    U.S. users) and designed privacy-preserving storage infrastructure eliminating
+    100K+ redundant annual verification submissions. Served as System Reliability
+    Champion for a 30+ engineer org and trained 1,000+ engineers as a Meta Bootcamp
+    Presenter. On the Ads AI team, migrated 60+ agentic tools from Python/GraphQL
+    to MCP, improving production response latency by 20%, and built an automated tool
+    detection and registry system for Meta's agentic AI ecosystem. Promoted IC3→IC4
+    in ~1 year; two consecutive Exceeds Expectations ratings. B.S. Computer Science,
+    Georgia Institute of Technology (Dean's List).
 achievements:
-  - "Built Australia Under-16 enforcement flows for the world's first social media regulation of its kind — contributed to ~544K underage account actions across Instagram, Facebook, and Threads"
-  - "Engineered anti-circumvention and re-verification systems preserving safeguarded environments for 50M+ U.S. teenagers across Instagram and Facebook"
-  - "Built state-specific age verification compliance systems for Florida HB 3 and Utah SB 152, protecting 5M+ minors with infrastructure scalable to 15+ additional U.S. states"
-  - "Standardized cross-platform age verification across Facebook, Instagram, and Threads — expanded age protection coverage to ~20M U.S. users"
-  - "Designed privacy-preserving age verification storage infrastructure eliminating ~100K+ redundant annual verification submissions"
-  - "Migrated 60+ agentic tools from Python/GraphQL to MCP — improved production AI response latency by 20%"
-  - "Built automated tool detection and registry system for Meta's agentic AI tooling ecosystem"
-  - "Promoted IC3→IC4 in ~1 year (typical timeline: 2–3 years); 2x consecutive Exceeds Expectations performance ratings"
-  - "Served as System Reliability Champion for a 30+ engineer organization — defined bug SLAs, led SEV reviews, drove incident response"
-  - "Selected as Meta Engineering Bootcamp Presenter — delivered SEV response and testing culture training to 1,000+ engineers"
-
+- Built Australia Under-16 enforcement flows for the world's first social media regulation
+  of its kind — contributed to ~544K underage account actions across Instagram, Facebook,
+  and Threads
+- Engineered anti-circumvention and re-verification systems preserving safeguarded
+  environments for 50M+ U.S. teenagers across Instagram and Facebook
+- Built state-specific age verification compliance systems for Florida HB 3 and Utah
+  SB 152, protecting 5M+ minors with infrastructure scalable to 15+ additional U.S.
+  states
+- Standardized cross-platform age verification across Facebook, Instagram, and Threads
+  — expanded age protection coverage to ~20M U.S. users
+- Designed privacy-preserving age verification storage infrastructure eliminating
+  ~100K+ redundant annual verification submissions
+- Migrated 60+ agentic tools from Python/GraphQL to MCP — improved production AI response
+  latency by 20%
+- Built automated tool detection and registry system for Meta's agentic AI tooling
+  ecosystem
+- 'Promoted IC3→IC4 in ~1 year (typical timeline: 2–3 years); 2x consecutive Exceeds
+  Expectations performance ratings'
+- Served as System Reliability Champion for a 30+ engineer organization — defined
+  bug SLAs, led SEV reviews, drove incident response
+- Selected as Meta Engineering Bootcamp Presenter — delivered SEV response and testing
+  culture training to 1,000+ engineers
 story_modules:
   australia_enforcement:
-    title: "World's First Under-16 Social Media Enforcement at Scale"
-    summary: "Engineered the automated detection, account disablement, and user education workflows enabling Meta's compliance with Australia's Online Safety Amendment Act 2024 — the world's first social media Under-16 regulation. Contributed to ~544K underage account actions across Instagram (330K), Facebook (174K), and Threads (40K). Covered by TIME, CNBC, PBS NewsHour, and others."
+    title: World's First Under-16 Social Media Enforcement at Scale
+    summary: Engineered the automated detection, account disablement, and user education
+      workflows enabling Meta's compliance with Australia's Online Safety Amendment
+      Act 2024 — the world's first social media Under-16 regulation. Contributed to
+      ~544K underage account actions across Instagram (330K), Facebook (174K), and
+      Threads (40K). Covered by TIME, CNBC, PBS NewsHour, and others.
     uscis_criteria:
-      - "critical role at distinguished organization"
-      - "published material about the person's work"
-
+    - critical role at distinguished organization
+    - published material about the person's work
   teen_accounts:
-    title: "Teen Accounts — Protecting 50M+ U.S. Teenagers"
-    summary: "Built anti-circumvention and re-verification systems for Meta's Teen Account experiences, preserving safeguarded environments for 50M+ U.S. teenagers across Instagram and Facebook. Covered by The Washington Post, Fox News, and Social Media Today."
+    title: Teen Accounts — Protecting 50M+ U.S. Teenagers
+    summary: Built anti-circumvention and re-verification systems for Meta's Teen
+      Account experiences, preserving safeguarded environments for 50M+ U.S. teenagers
+      across Instagram and Facebook. Covered by The Washington Post, Fox News, and
+      Social Media Today.
     uscis_criteria:
-      - "critical role at distinguished organization"
-      - "published material about the person's work"
-
+    - critical role at distinguished organization
+    - published material about the person's work
   state_compliance:
-    title: "State-Specific Age Verification — Florida & Utah"
-    summary: "Built jurisdiction-aware age verification compliance systems for Florida HB 3 and Utah SB 152, protecting 5M+ minors with reusable infrastructure designed to scale to 15+ additional U.S. states. Covered by Newsweek."
+    title: State-Specific Age Verification — Florida & Utah
+    summary: Built jurisdiction-aware age verification compliance systems for Florida
+      HB 3 and Utah SB 152, protecting 5M+ minors with reusable infrastructure designed
+      to scale to 15+ additional U.S. states. Covered by Newsweek.
     uscis_criteria:
-      - "critical role at distinguished organization"
-      - "original contributions of major significance"
-
+    - critical role at distinguished organization
+    - original contributions of major significance
   mcp_migration:
-    title: "MCP Migration — Agentic AI Tooling at Scale"
-    summary: "Migrated 60+ agentic tools from Python/GraphQL to the Model Context Protocol (MCP) on Meta's Ads AI team, improving production AI response latency by 20%. Also built an automated tool detection and registry system for governance, compliance, and performance optimization of Meta's agentic AI ecosystem."
+    title: MCP Migration — Agentic AI Tooling at Scale
+    summary: Migrated 60+ agentic tools from Python/GraphQL to the Model Context Protocol
+      (MCP) on Meta's Ads AI team, improving production AI response latency by 20%.
+      Also built an automated tool detection and registry system for governance, compliance,
+      and performance optimization of Meta's agentic AI ecosystem.
     uscis_criteria:
-      - "critical role at distinguished organization"
-      - "original contributions of major significance"
-
+    - critical role at distinguished organization
+    - original contributions of major significance
   hackathon_judging:
-    title: "Hackathon Judge & Mentor — Princeton, UCLA, UC Davis"
-    summary: "Serving as judge and mentor at three university hackathons in Spring 2026: Princeton Hackathon (April 18, 2026 — Mentor), UCLA Hackathon (April 26, 2026 — Judge), and UC Davis Hackathon (May 15, 2026 — Judge). Evaluating student projects across software engineering, AI, and product design tracks. Roles obtained through direct application; organizer letters to be collected after each event."
+    title: Hackathon Judge & Mentor — Princeton, UCLA, UC Davis
+    summary: 'Serving as judge and mentor at three university hackathons in Spring
+      2026: Princeton Hackathon (April 18, 2026 — Mentor), UCLA Hackathon (April 26,
+      2026 — Judge), and UC Davis Hackathon (May 15, 2026 — Judge). Evaluating student
+      projects across software engineering, AI, and product design tracks. Roles obtained
+      through direct application; organizer letters to be collected after each event.'
     uscis_criteria:
-      - "judging the work of others"
-
+    - judging the work of others
   youtube_appearance:
-    title: "Expert Interview — Jack of All Trades Podcast (5,100+ Views)"
-    summary: "Featured as an expert guest on the Jack of All Trades YouTube podcast in the episode 'How To Break Into Big Tech As A Foreigner'. The episode has garnered 5,100+ views. The host has 300,000+ Instagram followers and selected Mateo as an expert voice on the topic of international engineering careers and breaking into big tech as a foreign-born engineer. Host has confirmed availability to write a letter of support."
-    url: "https://youtu.be/7r9TsnzK-ms"
+    title: Expert Interview — Jack of All Trades Podcast (5,100+ Views)
+    summary: Featured as an expert guest on the Jack of All Trades YouTube podcast
+      in the episode 'How To Break Into Big Tech As A Foreigner'. The episode has
+      garnered 5,100+ views. The host has 300,000+ Instagram followers and selected
+      Mateo as an expert voice on the topic of international engineering careers and
+      breaking into big tech as a foreign-born engineer. Host has confirmed availability
+      to write a letter of support.
+    url: https://youtu.be/7r9TsnzK-ms
     uscis_criteria:
-      - "published material about the person's work"
-
+    - published material about the person's work
   high_salary:
-    title: "High Compensation — 2.2x U.S. Software Engineer Median"
-    summary: "Total annual compensation of approximately $294,000 (base: $186,000 + bonus ~$27,900 + RSU ~$80,000), representing 2.2x the U.S. national software developer median of $133,080 (BLS May 2024). Exceeds the BLS top-10% threshold of $211,450 for software developers nationally. Benchmarks to Meta E4 Bay Area median of $304,611 (Levels.fyi 2026), with current position reflecting recent IC4 promotion with RSU growth expected over time."
+    title: High Compensation — 2.2x U.S. Software Engineer Median
+    summary: 'Total annual compensation of approximately $294,000 (base: $186,000
+      + bonus ~$27,900 + RSU ~$80,000), representing 2.2x the U.S. national software
+      developer median of $133,080 (BLS May 2024). Exceeds the BLS top-10% threshold
+      of $211,450 for software developers nationally. Benchmarks to Meta E4 Bay Area
+      median of $304,611 (Levels.fyi 2026), with current position reflecting recent
+      IC4 promotion with RSU growth expected over time.'
     uscis_criteria:
-      - "high salary"
-
+    - high salary
   internal_evaluations:
-    title: "Internal Technical Evaluations & Peer Review at Meta"
-    summary: "Formally evaluated approximately 6 teammates across multiple PSC (Performance Summary Cycle) reviews at Meta IC4 level. Named as reviewer on internal technical RFCs and product/engineering design proposals for Age Assurance and Ads AI initiatives. Served as intern mentor with defined technical deliverables. Selected as Meta Engineering Bootcamp Presenter delivering SEV response and testing culture training to 1,000+ engineers across multiple cohorts. Served as System Reliability Champion for a 30+ engineer organization."
+    title: Internal Technical Evaluations & Peer Review at Meta
+    summary: Formally evaluated approximately 6 teammates across multiple PSC (Performance
+      Summary Cycle) reviews at Meta IC4 level. Named as reviewer on internal technical
+      RFCs and product/engineering design proposals for Age Assurance and Ads AI initiatives.
+      Served as intern mentor with defined technical deliverables. Selected as Meta
+      Engineering Bootcamp Presenter delivering SEV response and testing culture training
+      to 1,000+ engineers across multiple cohorts. Served as System Reliability Champion
+      for a 30+ engineer organization.
     uscis_criteria:
-      - "judging the work of others"
-      - "critical role at distinguished organization"
-
+    - judging the work of others
+    - critical role at distinguished organization
 talk_topic_seeds:
-  - "Age verification at scale: engineering compliance for world-first social media regulation"
-  - "Building reliable agentic AI systems in production"
-  - "MCP in practice: migrating production AI tools to the Model Context Protocol"
-  - "Anti-circumvention systems: keeping safeguarded digital environments secure"
-  - "AI safety and child protection at billion-user scale"
-  - "From regulation to code: how engineers implement social media compliance"
-  - "From France to Meta IC4: navigating the US tech industry as a foreign engineer"
-  - "What it actually takes to land a big tech role as an international student"
-  - "F-1 to full-time: the software engineer's guide to working in the US"
-  - "Lessons from IC3 to IC4 in under a year at Meta"
-  - "How to build credibility fast as a new grad at a big tech company"
-
+- 'Age verification at scale: engineering compliance for world-first social media
+  regulation'
+- Building reliable agentic AI systems in production
+- 'MCP in practice: migrating production AI tools to the Model Context Protocol'
+- 'Anti-circumvention systems: keeping safeguarded digital environments secure'
+- AI safety and child protection at billion-user scale
+- 'From regulation to code: how engineers implement social media compliance'
+- 'From France to Meta IC4: navigating the US tech industry as a foreign engineer'
+- What it actually takes to land a big tech role as an international student
+- 'F-1 to full-time: the software engineer''s guide to working in the US'
+- Lessons from IC3 to IC4 in under a year at Meta
+- How to build credibility fast as a new grad at a big tech company
 constraints:
-  geography: "Bay Area preferred, remote OK, no travel outside Bay Area unless toggled"
+  geography: Bay Area preferred, remote OK, no travel outside Bay Area unless toggled
   weekly_max_actions: 3

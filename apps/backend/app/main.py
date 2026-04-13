@@ -6,6 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.database import engine, get_db
 from app import models
+from app.models import AuditLog
 from app.schemas import OpportunityOut, PipelineOpportunityOut, DraftOut, EvidenceOut
 from app.config import settings
 
@@ -91,7 +92,10 @@ def create_plan(opportunity_id: int, db: Session = Depends(get_db)):
     opp.status = "in_progress"
     db.commit()
     db.refresh(opp)
-    return opp
+    db.refresh(draft)
+    data = PipelineOpportunityOut.model_validate(opp)
+    data.draft = DraftOut.model_validate(draft)
+    return data
 
 
 @app.post("/drafts/{draft_id}/emails/{email_id}/send", response_model=DraftOut)
@@ -116,6 +120,8 @@ def send_email(draft_id: int, email_id: str, db: Session = Depends(get_db)):
     # Mark email as sent
     target["sent"] = True
     draft.action_plan = {**plan, "email_drafts": email_drafts}
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(draft, "action_plan")
     draft.message_id = message_id
     draft.thread_id = thread_id
 
@@ -150,6 +156,8 @@ def toggle_todo(draft_id: int, todo_id: str, db: Session = Depends(get_db)):
             break
 
     draft.action_plan = {**plan, "todos": todos}
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(draft, "action_plan")
     db.commit()
     db.refresh(draft)
     return draft
@@ -195,6 +203,16 @@ def log_evidence(opportunity_id: int, db: Session = Depends(get_db)):
     opp.status = "completed"
     db.commit()
     db.refresh(evidence)
+
+    # Update profile.yaml with a new story module and re-seed so it appears in evidence
+    try:
+        from app.profile.updater import update_profile_with_opportunity
+        from app.profile.seed_evidence import seed_profile_evidence
+        update_profile_with_opportunity(opp, db)
+        seed_profile_evidence(db)
+    except Exception:
+        pass  # Profile update is best-effort — never fail the evidence log
+
     return evidence
 
 

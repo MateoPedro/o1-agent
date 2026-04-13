@@ -104,8 +104,15 @@ def _host_info(module_name: str, module: dict) -> tuple[str, str, str]:
     }
     if module_name in overrides:
         return overrides[module_name]
-    return (
-        "https://meta.com",
-        "Meta Platforms",
-        "Global technology company — Facebook, Instagram, WhatsApp, Threads (3B+ users)",
-    )
+    # For dynamically-generated modules, extract host info from the module title/summary
+    title = module.get("title", "")
+    summary = module.get("summary", "")
+    url = module.get("url", "https://meta.com")
+    # Parse host name from title: "Speaker — AI Engineer World's Fair 2026" → "AI Engineer World's Fair 2026"
+    if " — " in title:
+        host_name = title.split(" — ", 1)[1].strip()
+    elif " at " in title:
+        host_name = title.split(" at ", 1)[1].strip()
+    else:
+        host_name = title or module_name.replace("_", " ").title()
+    return (url, host_name, summary[:120] if summary else host_name)

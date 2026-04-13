@@ -18,7 +18,7 @@ An always-on agent that continuously discovers, scores, drafts, and tracks immig
 | Database | SQLite (dev) → PostgreSQL (prod) via SQLAlchemy ORM + Alembic |
 | Email | Gmail API (OAuth2) |
 | Profile config | YAML flat files (version-controlled) |
-| Frontend | Streamlit (MVP) → Next.js |
+| Frontend | Next.js 14 App Router + TypeScript + Tailwind CSS |
 
 The backend lives in `apps/backend/` (Python/FastAPI) and the frontend in `apps/frontend/`.
 
@@ -46,8 +46,12 @@ npm run dev
 
 The system has four layers:
 
-### Layer 1 — Discovery (Celery beat, runs daily)
+### Layer 1 — Discovery (Celery beat)
 Discovery is LLM-driven — no custom scrapers. Claude (with web search enabled) runs a versioned discovery prompt stored in the `prompts` DB table and returns structured opportunity objects directly via tool use. Adding a new source type = updating the prompt, not writing a parser.
+
+**Cron schedule (America/Los_Angeles):**
+- `discover_speaking_ops` — Fridays at 4:00 PM PT
+- `poll_outcomes` — Daily at 5:00 PM PT
 
 Each opportunity vertical has its own discovery prompt:
 - **Speaking** (`discover_speaking_ops`) — conferences, panels, workshops, meetups, online events. Domains: AI agents, age verification, MCP, AI safety, social media compliance, software engineering, immigration/breaking into tech. Location preference: Bay Area or virtual (location feeds into scoring, not hard-filtered).
@@ -67,12 +71,11 @@ Four specialized LLM components, each with its own system prompt — not one mon
 The static user profile (bio variants, project story modules, talk topic seeds, domain constraints) is a flat YAML file, version-controlled, not a DB table.
 
 ### Layer 3 — Action
-- **Opportunity inbox** — `GET /inbox` returns top-N opportunities by `priority_score`, capped by a configurable weekly max
-- **Submission engine** — two paths, both gated behind `approved_at`:
-  - Email path via Gmail API (logs `Message-Id` for reply threading)
-  - Form path via Playwright headless filler (shows screenshot before submitting)
-- **Outcome tracker** — Celery periodic task polls Gmail for replies to agent-initiated threads; LLM classifier categorizes: `accepted / rejected / more-info-needed / no-reply`
-- **Evidence logger** — when an opportunity is marked `completed`, creates a structured `EvidenceEntry` mapped to USCIS criteria, exportable as criterion-filtered Markdown
+- **Opportunity inbox** — `GET /inbox` returns top-N opportunities by `priority_score`, capped by `weekly_max_actions` in profile.yaml. Filters out past deadlines and past event dates.
+- **Action planner** — `POST /opportunities/{id}/plan` triggers a Haiku LLM call that generates a structured action plan: todos, email drafts, and a content outline (suggested angle, title ideas, key points, story modules to reference). Status moves to `in_progress`.
+- **Submission engine** — email path via Gmail API (logs `Message-Id` + `thread_id` for reply threading). Form-based submissions are handled as manual todos in the action plan.
+- **Outcome tracker** — `poll_outcomes` Celery task polls Gmail for replies; Haiku classifier categorizes: `accepted / rejected / more_info_needed` with a reply summary.
+- **Evidence logger** — `POST /opportunities/{id}/log-evidence` creates an `Evidence` entry mapped to USCIS criteria, then automatically generates a new story module in `profile.yaml` via Haiku and re-seeds it as a second evidence entry (source=`profile`). Exportable as criterion-filtered Markdown.
 
 ### Layer 4 — Storage
 ```sql
@@ -82,35 +85,31 @@ evidence        -- completed activities mapped to USCIS criteria
 audit_log       -- every outbound payload + every LLM call, with timestamps
 ```
 
-Status lifecycle for opportunities: `discovered → drafted → approved → submitted → accepted | rejected → completed`
-
-## Follow-up items (not yet built)
-
-- **USCIS criteria mapping refinement** — current mapping is a simple deterministic function (talk → `original contributions` + `leading role`). Needs a pass to tighten wording against the actual USCIS O-1A criterion definitions, and to handle edge cases (e.g. a prestigious invited keynote may also support `critical role at distinguished organization`). No LLM needed — pure rules per opportunity type.
+Status lifecycle for opportunities: `discovered → in_progress → submitted → accepted | rejected → completed`
 
 ## Hard rules (never relaxed)
 
-- **No automatic submissions.** `approved_at` must be set before any outbound action. This is enforced at the API layer, not just the UI.
+- **No automatic submissions.** The Send Email button is always a manual user action — nothing goes outbound without a click. `approved_at` column exists in the schema but the gate is not currently enforced at the API layer (deliberate decision: single user, manual workflow makes the extra step redundant friction).
 - **All LLM calls are logged** with their opportunity ID to `audit_log`.
 - **Gmail integration is narrowly scoped** — only agent-initiated threads, never the full inbox.
-- **Playwright form filler always shows a screenshot** for approval before submitting.
 - **No internal/employer data** — scrapers only touch public sources.
 
 ## Implementation plan
 
 The build is structured in 5 slices, each adding a new opportunity vertical on top of the shared core loop. All discovery is LLM-driven (Claude web search + versioned prompts) — no custom scrapers.
 
-### Slice 1 — Speaking vertical ← in progress
+### Slice 1 — Speaking vertical ✅ Done
 Validates the full core loop end-to-end. Speaking opportunities (invited speaker) produce strong USCIS evidence (`original contributions` + `leading role`) and the draft assets (title, abstract, bio) are reusable across many events.
 
 | Phase | Status | Deliverable |
 |---|---|---|
 | Foundation | ✅ Done | Repo, FastAPI `/health`, SQLite schema, Celery+Redis, YAML profile |
 | Speaking Discovery | ✅ Done | `discover_speaking_ops` Celery task — Claude web search → typed `Opportunity` objects in DB, prompt versioned in `prompts` table |
-| Scoring + Inbox | Next | Scoring engine + `GET /inbox` + Streamlit inbox UI |
-| Talk Drafting + Approval | Planned | Abstract + bio drafter, `approved_at` gate enforced at API layer |
-| Submission + Tracking | Planned | Gmail send + Playwright form filler + outcome tracker |
-| Hardening | Planned | Error handling, deadline filter, ops runbook |
+| Scoring + Inbox | ✅ Done | Scoring engine, `GET /inbox` with deadline + event_date filters, Next.js Inbox UI |
+| Action Planning | ✅ Done | Haiku planner generates todos + email drafts + content outline; Pipeline page (In Progress / Accepted / Completed tabs) |
+| Submission + Tracking | ✅ Done | Gmail send via OAuth2, `poll_outcomes` task, Haiku reply classifier (accepted / rejected / more_info_needed + summary) |
+| Evidence + Profile | ✅ Done | Evidence page grouped by USCIS criterion, Markdown export, profile.yaml auto-update on log-evidence, incremental re-seed |
+| Cron schedule | ✅ Done | Discovery Fridays 4pm PT, polling daily 5pm PT (America/Los_Angeles, pytz) |
 
 ### Slice 2 — Judging vertical
 `discover_judging_ops` — hackathon judge/mentor roles, program committees, accelerator demo days, grant panels. Formally invited roles prioritized. Judging opportunities may already be lined up manually; the discovery task adds automation on top.
@@ -124,7 +123,7 @@ Validates the full core loop end-to-end. Speaking opportunities (invited speaker
 ### Slice 5 — Feedback loop
 Conversion metrics tracking (discovered → applied → accepted per source), scorer weight tuning, discovery prompt refinement from acceptance patterns.
 
-**Deferred:** Postgres migration (when concurrent workers needed), Next.js frontend (Streamlit is the MVP UI).
+**Deferred:** Postgres migration (when concurrent workers needed). Next.js frontend is already live — Streamlit was skipped.
 
 ## Reference docs
 
