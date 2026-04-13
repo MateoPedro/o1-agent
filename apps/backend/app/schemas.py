@@ -81,3 +81,18 @@ class PipelineOpportunityOut(BaseModel):
     draft: DraftOut | None = None
 
     model_config = {"from_attributes": True}
+
+
+class EvidenceOut(BaseModel):
+    id: int
+    opportunity_id: int
+    activity_type: str
+    host_name: str
+    host_description: str
+    date: date
+    public_url: str
+    uscis_criteria: list
+    supporting_details: dict
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { RefreshCw } from "lucide-react"
-import { useInbox, usePipeline } from "@/lib/queries"
+import { useInbox, usePipeline, useEvidence } from "@/lib/queries"
 import { OpportunityCard } from "@/components/OpportunityCard"
 import { Nav } from "@/components/Nav"
 
@@ -10,6 +10,7 @@ export default function InboxPage() {
   const [limit, setLimit] = useState(10)
   const { data: opportunities, isLoading, error, refetch, isFetching } = useInbox(limit)
   const { data: pipeline } = usePipeline()
+  const { data: evidence } = useEvidence()
 
   const avgScore =
     opportunities && opportunities.length > 0
@@ -18,7 +19,7 @@ export default function InboxPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Nav pipelineCount={pipeline?.length} />
+      <Nav pipelineCount={pipeline?.filter(o => o.status === "in_progress" || o.status === "submitted").length} evidenceCount={evidence?.length} />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats bar */}

@@ -89,6 +89,37 @@ export async function toggleTodo(draftId: number, todoId: string): Promise<Draft
   return res.json()
 }
 
+export interface Evidence {
+  id: number
+  opportunity_id: number
+  activity_type: string
+  host_name: string
+  host_description: string
+  date: string
+  public_url: string
+  uscis_criteria: Array<{ criterion: string; strength: string; rationale: string }>
+  supporting_details: Record<string, unknown>
+  created_at: string
+}
+
+export async function acceptOpportunity(id: number): Promise<Opportunity> {
+  const res = await fetch(`${API_BASE}/opportunities/${id}/accept`, { method: "POST" })
+  if (!res.ok) throw new Error("Failed to accept opportunity")
+  return res.json()
+}
+
+export async function logEvidence(id: number): Promise<Evidence> {
+  const res = await fetch(`${API_BASE}/opportunities/${id}/log-evidence`, { method: "POST" })
+  if (!res.ok) throw new Error("Failed to log evidence")
+  return res.json()
+}
+
+export async function fetchEvidence(): Promise<Evidence[]> {
+  const res = await fetch(`${API_BASE}/evidence`)
+  if (!res.ok) throw new Error("Failed to fetch evidence")
+  return res.json()
+}
+
 export async function sendEmail(draftId: number, emailId: string): Promise<Draft> {
   const res = await fetch(`${API_BASE}/drafts/${draftId}/emails/${emailId}/send`, {
     method: "POST",

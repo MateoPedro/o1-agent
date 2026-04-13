@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.database import engine, get_db
 from app import models
-from app.schemas import OpportunityOut, PipelineOpportunityOut, DraftOut
+from app.schemas import OpportunityOut, PipelineOpportunityOut, DraftOut, EvidenceOut
 from app.config import settings
 
 
@@ -145,6 +145,88 @@ def toggle_todo(draft_id: int, todo_id: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(draft)
     return draft
+
+
+@app.post("/opportunities/{opportunity_id}/accept", response_model=PipelineOpportunityOut)
+def accept_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
+    from sqlalchemy.orm import joinedload
+    opp = db.query(models.Opportunity).options(joinedload(models.Opportunity.drafts)).filter(models.Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    opp.status = "accepted"
+    db.commit()
+    data = PipelineOpportunityOut.model_validate(opp)
+    if opp.drafts:
+        data.draft = DraftOut.model_validate(opp.drafts[-1])
+    return data
+
+
+@app.post("/opportunities/{opportunity_id}/log-evidence", response_model=EvidenceOut)
+def log_evidence(opportunity_id: int, db: Session = Depends(get_db)):
+    opp = db.query(models.Opportunity).filter(models.Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    evidence = models.Evidence(
+        opportunity_id=opp.id,
+        activity_type=opp.type,
+        host_name=opp.host,
+        host_description=opp.host_domain,
+        date=opp.event_date or date.today(),
+        public_url=opp.source_url,
+        uscis_criteria=opp.uscis_criteria or [],
+        supporting_details={
+            "location": opp.location,
+            "topic_tags": opp.topic_tags,
+            "priority_score": opp.priority_score,
+            "score_rationale": opp.score_rationale,
+            "effort": opp.effort,
+        },
+    )
+    db.add(evidence)
+    opp.status = "completed"
+    db.commit()
+    db.refresh(evidence)
+    return evidence
+
+
+@app.get("/evidence", response_model=list[EvidenceOut])
+def get_evidence(db: Session = Depends(get_db)):
+    return db.query(models.Evidence).order_by(models.Evidence.date.desc()).all()
+
+
+@app.get("/evidence/export")
+def export_evidence(db: Session = Depends(get_db)):
+    from fastapi.responses import PlainTextResponse
+    entries = db.query(models.Evidence).order_by(models.Evidence.date.desc()).all()
+    if not entries:
+        return PlainTextResponse("No evidence logged yet.")
+
+    # Group by criterion
+    by_criterion: dict[str, list] = {}
+    for entry in entries:
+        for c in (entry.uscis_criteria or []):
+            criterion = c.get("criterion", "Unknown")
+            by_criterion.setdefault(criterion, []).append((entry, c))
+
+    lines = ["# O-1A Evidence Log\n"]
+    for criterion, items in by_criterion.items():
+        lines.append(f"## {criterion}\n")
+        for entry, c in items:
+            lines.append(f"### {entry.host_name} — {entry.activity_type} — {entry.date}")
+            lines.append(f"- **Strength:** {c.get('strength', '').capitalize()}")
+            lines.append(f"- **URL:** {entry.public_url}")
+            lines.append(f"- **Rationale:** {c.get('rationale', '')}")
+            if entry.supporting_details.get("score_rationale"):
+                lines.append(f"- **Context:** {entry.supporting_details['score_rationale']}")
+            lines.append("")
+
+    from fastapi.responses import Response
+    return Response(
+        content="\n".join(lines),
+        media_type="text/markdown",
+        headers={"Content-Disposition": "attachment; filename=o1a-evidence.md"},
+    )
 
 
 @app.get("/pipeline", response_model=list[PipelineOpportunityOut])

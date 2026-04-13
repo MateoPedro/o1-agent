@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fetchInbox, fetchPipeline, createPlan, toggleTodo, sendEmail } from "./api"
+import { fetchInbox, fetchPipeline, createPlan, toggleTodo, sendEmail, acceptOpportunity, logEvidence, fetchEvidence } from "./api"
 
 export function useInbox(limit = 10) {
   return useQuery({
@@ -35,6 +35,29 @@ export function useSendEmail() {
       sendEmail(draftId, emailId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pipeline"] })
+    },
+  })
+}
+
+export function useEvidence() {
+  return useQuery({ queryKey: ["evidence"], queryFn: fetchEvidence })
+}
+
+export function useAcceptOpportunity() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: acceptOpportunity,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["pipeline"] }),
+  })
+}
+
+export function useLogEvidence() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: logEvidence,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pipeline"] })
+      queryClient.invalidateQueries({ queryKey: ["evidence"] })
     },
   })
 }

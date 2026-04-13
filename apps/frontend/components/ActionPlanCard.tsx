@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail, Send } from "lucide-react"
-import { useToggleTodo, useSendEmail } from "@/lib/queries"
+import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail, Send, Trophy, CheckCircle } from "lucide-react"
+import { useToggleTodo, useSendEmail, useAcceptOpportunity, useLogEvidence } from "@/lib/queries"
 import type { Opportunity, TodoItem, EmailDraft, ContentOutline } from "@/lib/api"
 
 const STATUS_STYLES: Record<string, string> = {
@@ -200,6 +200,11 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
   const draftId = opp.draft?.id
   const reply = opp.draft?.reply_classification
   const replyStyle = reply ? REPLY_STYLES[reply] : null
+  const accept = useAcceptOpportunity()
+  const logEvidence = useLogEvidence()
+  const isActive = opp.status === "in_progress" || opp.status === "submitted"
+  const isAccepted = opp.status === "accepted"
+  const isCompleted = opp.status === "completed"
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm flex flex-col overflow-hidden ${replyStyle ? replyStyle.banner : "border-slate-200"}`}>
@@ -260,6 +265,40 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
       {!plan && (
         <div className="px-5 py-8 text-center text-slate-400 text-sm">
           No action plan yet.
+        </div>
+      )}
+
+      {/* Footer actions */}
+      {(isActive || isAccepted) && (
+        <div className="px-5 pb-5 pt-3 border-t border-slate-100 flex gap-2">
+          {isActive && (
+            <button
+              onClick={() => accept.mutate(opp.id)}
+              disabled={accept.isPending}
+              className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl px-3 py-2 font-medium transition-colors disabled:opacity-50"
+            >
+              <CheckCircle size={13} />
+              {accept.isPending ? "Marking…" : "Mark Accepted"}
+            </button>
+          )}
+          {isAccepted && (
+            <button
+              onClick={() => logEvidence.mutate(opp.id)}
+              disabled={logEvidence.isPending}
+              className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-3 py-2 font-medium transition-colors disabled:opacity-50"
+            >
+              <Trophy size={13} />
+              {logEvidence.isPending ? "Logging…" : "Log Evidence"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {isCompleted && (
+        <div className="px-5 pb-4 pt-3 border-t border-slate-100">
+          <p className="text-xs text-emerald-600 font-medium flex items-center gap-1.5">
+            <Trophy size={12} /> Evidence logged
+          </p>
         </div>
       )}
     </div>
