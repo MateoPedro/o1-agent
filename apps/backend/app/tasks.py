@@ -2,6 +2,7 @@ from app.worker import celery_app
 from app.database import SessionLocal
 from app.models import Opportunity, Draft
 from app.llm.discovery import discover_speaking_opportunities
+from app.llm.membership_discovery import discover_membership_opportunities
 from app.llm.normalizer import normalize_opportunity
 from app.llm.scorer import score_opportunity
 from app.llm.criteria import map_criteria
@@ -43,6 +44,50 @@ def discover_speaking_ops():
             score_opportunity(opp, db)
 
             # 3. Map USCIS criteria (LLM) — requires prestige_score from step 2
+            opp.uscis_criteria = map_criteria(opp, db)
+            db.commit()
+
+            results["discovered"] += 1
+
+    finally:
+        db.close()
+
+    return results
+
+
+@celery_app.task(name="app.tasks.discover_membership_ops")
+def discover_membership_ops():
+    db = SessionLocal()
+    results = {"discovered": 0, "skipped_duplicates": 0, "failed": 0}
+
+    try:
+        raw_opportunities = discover_membership_opportunities(db)
+
+        for raw in raw_opportunities:
+            url = raw.get("url", "")
+            if not url:
+                results["failed"] += 1
+                continue
+
+            if db.query(Opportunity).filter_by(source_url=url).first():
+                results["skipped_duplicates"] += 1
+                continue
+
+            normalized = normalize_opportunity(raw, db)
+            if not normalized:
+                results["failed"] += 1
+                continue
+
+            # Force type to "member" — normalizer defaults to "talk" on ambiguous input
+            normalized_data = normalized.model_dump()
+            normalized_data["type"] = "member"
+            opp = Opportunity(**normalized_data)
+            db.add(opp)
+            db.commit()
+            db.refresh(opp)
+
+            score_opportunity(opp, db)
+
             opp.uscis_criteria = map_criteria(opp, db)
             db.commit()
 

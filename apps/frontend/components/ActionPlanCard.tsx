@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail, Send, Trophy, CheckCircle } from "lucide-react"
 import { useToggleTodo, useSendEmail, useAcceptOpportunity, useLogEvidence } from "@/lib/queries"
-import type { Opportunity, TodoItem, EmailDraft, ContentOutline } from "@/lib/api"
+import type { Opportunity, TodoItem, EmailDraft, ContentOutline, MembershipStatement } from "@/lib/api"
 
 const STATUS_STYLES: Record<string, string> = {
   in_progress: "bg-indigo-50 text-indigo-700 border-indigo-100",
@@ -189,6 +189,102 @@ function ContentOutlineSection({ outline }: { outline: ContentOutline }) {
   )
 }
 
+function MembershipStatementSection({ statement }: { statement: MembershipStatement }) {
+  const [openSection, setOpenSection] = useState<string | null>(null)
+  const toggle = (s: string) => setOpenSection(openSection === s ? null : s)
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Membership Application</p>
+      <div className="flex flex-col gap-1.5">
+
+        {/* Personal statement */}
+        <div className="rounded-xl border border-slate-200 overflow-hidden">
+          <button
+            className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+            onClick={() => toggle("statement")}
+          >
+            <span className="text-sm font-medium text-slate-700">Personal Statement Draft</span>
+            {openSection === "statement" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+          </button>
+          {openSection === "statement" && (
+            <div className="px-3 pb-3 border-t border-slate-100">
+              <pre className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed font-sans mt-2 bg-slate-50 rounded-lg p-3">
+                {statement.personal_statement_draft}
+              </pre>
+              <div className="mt-2">
+                <CopyButton text={statement.personal_statement_draft} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Talking points */}
+        {statement.talking_points?.length > 0 && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+              onClick={() => toggle("points")}
+            >
+              <span className="text-sm font-medium text-slate-700">Talking Points</span>
+              {openSection === "points" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+            </button>
+            {openSection === "points" && (
+              <div className="px-3 pb-3 border-t border-slate-100">
+                <ul className="flex flex-col gap-1.5 mt-2">
+                  {statement.talking_points.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-slate-300 text-xs mt-0.5 flex-shrink-0">·</span>
+                      <span className="text-xs text-slate-700 leading-relaxed">{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Nominator suggestions */}
+        {statement.nominator_suggestions?.length > 0 && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+              onClick={() => toggle("nominators")}
+            >
+              <span className="text-sm font-medium text-slate-700">Nominator Suggestions</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">
+                  {statement.nominator_suggestions.length}
+                </span>
+                {openSection === "nominators" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+              </div>
+            </button>
+            {openSection === "nominators" && (
+              <div className="px-3 pb-3 border-t border-slate-100 flex flex-col gap-2 mt-2">
+                {statement.nominator_suggestions.map((n, i) => (
+                  <div key={i} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                    <p className="text-xs font-semibold text-slate-700">{n.role}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.why}</p>
+                    <p className="text-xs text-indigo-600 mt-1 italic">{n.outreach_note}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Application window note */}
+        {statement.application_window_note && (
+          <p className="text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 leading-relaxed">
+            🗓 {statement.application_window_note}
+          </p>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
 const REPLY_STYLES = {
   accepted: { banner: "bg-emerald-50 border-emerald-200", text: "text-emerald-700", label: "Accepted" },
   rejected: { banner: "bg-red-50 border-red-200", text: "text-red-600", label: "Rejected" },
@@ -256,6 +352,9 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
             <TodoList todos={plan.todos} draftId={draftId} />
           )}
           {draftId && <EmailDraftSection drafts={plan.email_drafts ?? []} draftId={draftId} />}
+          {plan.membership_statement && (
+            <MembershipStatementSection statement={plan.membership_statement} />
+          )}
           {plan.content_outline && (
             <ContentOutlineSection outline={plan.content_outline} />
           )}

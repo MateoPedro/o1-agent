@@ -6,61 +6,95 @@ import { useInbox, usePipeline, useEvidence } from "@/lib/queries"
 import { OpportunityCard } from "@/components/OpportunityCard"
 import { Nav } from "@/components/Nav"
 
+const SLICE_TABS = [
+  { label: "Speaking", types: ["talk", "judge", "blog", "article"] },
+  { label: "Memberships", types: ["member"] },
+]
+
 export default function InboxPage() {
   const [limit, setLimit] = useState(10)
+  const [slice, setSlice] = useState(0)
   const { data: opportunities, isLoading, error, refetch, isFetching } = useInbox(limit)
   const { data: pipeline } = usePipeline()
   const { data: evidence } = useEvidence()
 
+  const filtered = opportunities?.filter((o) =>
+    SLICE_TABS[slice].types.includes(o.type)
+  )
+
+  const countFor = (i: number) =>
+    opportunities?.filter((o) => SLICE_TABS[i].types.includes(o.type)).length ?? 0
+
   const avgScore =
-    opportunities && opportunities.length > 0
-      ? opportunities.reduce((s, o) => s + (o.priority_score ?? 0), 0) / opportunities.length
+    filtered && filtered.length > 0
+      ? filtered.reduce((s, o) => s + (o.priority_score ?? 0), 0) / filtered.length
       : null
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Nav pipelineCount={pipeline?.filter(o => o.status === "in_progress" || o.status === "submitted").length} evidenceCount={evidence?.length} />
+      <Nav
+        pipelineCount={pipeline?.filter(o => o.status === "in_progress" || o.status === "submitted").length}
+        evidenceCount={evidence?.length}
+      />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats bar */}
-        <div className="flex items-center gap-6 mb-6">
-          <div className="flex items-center gap-6 text-sm flex-1">
-            {opportunities && (
-              <>
+        {/* Slice tabs */}
+        <div className="flex gap-1 mb-6 border-b border-slate-200">
+          {SLICE_TABS.map((t, i) => (
+            <button
+              key={t.label}
+              onClick={() => setSlice(i)}
+              className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                slice === i
+                  ? "text-indigo-600 border-b-2 border-indigo-600 -mb-px"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              {t.label}
+              {countFor(i) > 0 && (
+                <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                  slice === i ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-500"
+                }`}>
+                  {countFor(i)}
+                </span>
+              )}
+            </button>
+          ))}
+
+          {/* Stats + controls pushed to the right */}
+          <div className="flex items-center gap-4 ml-auto pb-1">
+            {filtered && filtered.length > 0 && (
+              <div className="flex items-center gap-4 text-sm">
                 <span className="text-slate-500">
-                  <strong className="text-slate-900 text-base">{opportunities.length}</strong>{" "}
-                  opportunities
+                  <strong className="text-slate-900">{filtered.length}</strong> opportunities
                 </span>
                 {avgScore !== null && (
                   <span className="text-slate-500">
-                    Avg score:{" "}
-                    <strong className="text-slate-900">{(avgScore * 100).toFixed(0)}</strong>
+                    Avg score: <strong className="text-slate-900">{(avgScore * 100).toFixed(0)}</strong>
                   </span>
                 )}
-              </>
+              </div>
             )}
+
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} />
+              Refresh
+            </button>
+
+            <select
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {[5, 10, 20].map((n) => (
+                <option key={n} value={n}>Show {n}</option>
+              ))}
+            </select>
           </div>
-
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} />
-            Refresh
-          </button>
-
-          <select
-            value={limit}
-            onChange={(e) => setLimit(Number(e.target.value))}
-            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {[5, 10, 20].map((n) => (
-              <option key={n} value={n}>
-                Show {n}
-              </option>
-            ))}
-          </select>
         </div>
 
         {isLoading && (
@@ -76,15 +110,19 @@ export default function InboxPage() {
           </div>
         )}
 
-        {opportunities && opportunities.length === 0 && (
+        {!isLoading && filtered?.length === 0 && (
           <div className="text-center py-24">
-            <p className="text-slate-500 font-medium">No scored opportunities yet.</p>
-            <p className="text-slate-400 text-sm mt-1">Run the discovery task to populate the inbox.</p>
+            <p className="text-slate-500 font-medium">No {SLICE_TABS[slice].label.toLowerCase()} opportunities yet.</p>
+            <p className="text-slate-400 text-sm mt-1">
+              {slice === 0
+                ? "Run the speaking discovery task to populate the inbox."
+                : "Run the membership discovery task to populate the inbox."}
+            </p>
           </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {opportunities?.map((opp) => (
+          {filtered?.map((opp) => (
             <OpportunityCard key={opp.id} opp={opp} />
           ))}
         </div>

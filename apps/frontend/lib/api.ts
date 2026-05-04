@@ -28,10 +28,24 @@ export interface ContentOutline {
   key_points: string[]
 }
 
+export interface NominatorSuggestion {
+  role: string
+  why: string
+  outreach_note: string
+}
+
+export interface MembershipStatement {
+  personal_statement_draft: string
+  nominator_suggestions: NominatorSuggestion[]
+  talking_points: string[]
+  application_window_note: string
+}
+
 export interface ActionPlan {
   todos: TodoItem[]
   email_drafts: EmailDraft[]
-  content_outline: ContentOutline
+  content_outline?: ContentOutline
+  membership_statement?: MembershipStatement
 }
 
 export interface Draft {

@@ -16,6 +16,15 @@ WEIGHTS = {
     "location": 0.10,
 }
 
+# Membership weights — prestige and evidence dominate; location is irrelevant
+MEMBERSHIP_WEIGHTS = {
+    "fit":      0.25,
+    "prestige": 0.40,
+    "evidence": 0.30,
+    "effort":   0.05,
+    "location": 0.00,
+}
+
 LOCATION_SCORES = {
     "virtual": 1.0,
     "remote": 1.0,
@@ -77,8 +86,37 @@ def _location_score(location: str | None) -> float:
 def score_opportunity(opp: Opportunity, db: Session) -> None:
     """Scores the opportunity in-place and commits to DB."""
     profile = load_profile()
+    is_membership = opp.type == "member"
 
-    prompt = f"""You are scoring a speaking opportunity for an O-1A immigration petition.
+    if is_membership:
+        context_lines = (
+            f"- Host: {opp.host} ({opp.host_domain})\n"
+            f"- Membership type: {opp.type}\n"
+            f"- Topic tags: {opp.topic_tags}\n"
+            f"- Deadline: {opp.deadline}\n"
+            f"- Effort: {opp.effort}\n"
+            f"- Requirements: {opp.requirements[:400]}"
+        )
+        scoring_note = (
+            "Score as a selective membership application. "
+            "Prestige (0.40) and evidence (0.30) are most important — "
+            "is this a nationally/internationally recognized association with selective criteria? "
+            "Fit (0.25) reflects how well the beneficiary's background matches eligibility. "
+            "Effort (0.05) is de-emphasized. Location is irrelevant — leave it out of your reasoning."
+        )
+    else:
+        context_lines = (
+            f"- Host: {opp.host} ({opp.host_domain})\n"
+            f"- Format: {opp.type}\n"
+            f"- Location: {opp.location}\n"
+            f"- Topic tags: {opp.topic_tags}\n"
+            f"- Deadline: {opp.deadline}\n"
+            f"- Effort: {opp.effort}\n"
+            f"- Requirements: {opp.requirements[:400]}"
+        )
+        scoring_note = "Score this opportunity. Be precise — this drives which opportunities surface in the inbox."
+
+    prompt = f"""You are scoring an opportunity for an O-1A immigration petition.
 
 Speaker profile:
 - Role: Software Engineer IC4 at Meta Platforms
@@ -86,15 +124,11 @@ Speaker profile:
 - Key achievements: {"; ".join(profile["achievements"][:4])}
 
 Opportunity to score:
-- Host: {opp.host} ({opp.host_domain})
-- Format: {opp.type}
-- Location: {opp.location}
-- Topic tags: {opp.topic_tags}
-- Deadline: {opp.deadline}
-- Effort: {opp.effort}
-- Requirements: {opp.requirements[:400]}
+{context_lines}
 
-Score this opportunity using the score_opportunity tool. Be precise — this drives which opportunities surface in the inbox."""
+{scoring_note}
+
+Use the score_opportunity tool."""
 
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -115,7 +149,8 @@ Score this opportunity using the score_opportunity tool. Be precise — this dri
     for block in response.content:
         if block.type == "tool_use" and block.name == "score_opportunity":
             s = block.input
-            loc_score = _location_score(opp.location)
+            weights = MEMBERSHIP_WEIGHTS if is_membership else WEIGHTS
+            loc_score = 0.0 if is_membership else _location_score(opp.location)
 
             opp.fit_score = s["fit"]
             opp.prestige_score = s["prestige"]
@@ -123,11 +158,11 @@ Score this opportunity using the score_opportunity tool. Be precise — this dri
             opp.effort_score = s["effort"]
             opp.score_rationale = s["rationale"]
             opp.priority_score = round(
-                s["fit"] * WEIGHTS["fit"]
-                + s["prestige"] * WEIGHTS["prestige"]
-                + s["evidence"] * WEIGHTS["evidence"]
-                + s["effort"] * WEIGHTS["effort"]
-                + loc_score * WEIGHTS["location"],
+                s["fit"]      * weights["fit"]
+                + s["prestige"] * weights["prestige"]
+                + s["evidence"] * weights["evidence"]
+                + s["effort"]   * weights["effort"]
+                + loc_score     * weights["location"],
                 4,
             )
             db.commit()

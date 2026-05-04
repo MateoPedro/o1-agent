@@ -14,6 +14,10 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.discover_speaking_ops",
         "schedule": crontab(hour=16, minute=0, day_of_week="friday"),  # Fridays 4pm PT
     },
+    "discover-membership-ops": {
+        "task": "app.tasks.discover_membership_ops",
+        "schedule": crontab(hour=9, minute=0, day_of_month="1"),  # 1st of each month, 9am PT
+    },
     "poll-outcomes": {
         "task": "app.tasks.poll_outcomes",
         "schedule": crontab(hour=17, minute=0),  # Daily 5pm PT

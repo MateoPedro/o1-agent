@@ -72,8 +72,86 @@ PLAN_TOOL = {
     },
 }
 
+MEMBERSHIP_PLAN_TOOL = {
+    "name": "create_action_plan",
+    "description": "Create a detailed action plan for pursuing this membership application.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "todos": {
+                "type": "array",
+                "description": "Ordered list of concrete next steps to complete and submit this membership application.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "task": {"type": "string", "description": "Short action title (under 10 words)"},
+                        "detail": {"type": "string", "description": "Specific instructions: what to prepare, who to contact, what to write, by when."},
+                        "completed": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "task", "detail", "completed"],
+                },
+            },
+            "email_drafts": {
+                "type": "array",
+                "description": "Ready-to-send emails for nominator outreach. One email per nominator you are asking to endorse.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "to": {"type": "string", "description": "Recipient role description, e.g. 'Former manager at Meta'"},
+                        "subject": {"type": "string"},
+                        "body": {"type": "string", "description": "Full email body, personalized and ready to send"},
+                        "sent": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "to", "subject", "body", "sent"],
+                },
+            },
+            "membership_statement": {
+                "type": "object",
+                "properties": {
+                    "personal_statement_draft": {
+                        "type": "string",
+                        "description": "A 2–3 paragraph draft personal statement written in first person, grounded in the beneficiary's specific achievements. Should directly address the membership's eligibility criteria.",
+                    },
+                    "nominator_suggestions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "role": {"type": "string", "description": "e.g. 'Engineering Manager at Meta', 'Former intern who became full-time'"},
+                                "why": {"type": "string", "description": "Why this person is a strong nominator for this specific membership"},
+                                "outreach_note": {"type": "string", "description": "One sentence on what to say when asking them to nominate"},
+                            },
+                            "required": ["role", "why", "outreach_note"],
+                        },
+                        "description": "3–5 suggestions for who to ask as nominators, with specific rationale.",
+                    },
+                    "talking_points": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "4–6 specific bullet points from the beneficiary's background that most directly satisfy this membership's eligibility criteria.",
+                    },
+                    "application_window_note": {
+                        "type": "string",
+                        "description": "Summary of when to apply and key dates to track.",
+                    },
+                },
+                "required": ["personal_statement_draft", "nominator_suggestions", "talking_points", "application_window_note"],
+            },
+        },
+        "required": ["todos", "email_drafts", "membership_statement"],
+    },
+}
+
 
 def create_action_plan(opp: Opportunity, db: Session) -> dict:
+    if opp.type == "member":
+        return _create_membership_plan(opp, db)
+    return _create_speaking_plan(opp, db)
+
+
+def _create_speaking_plan(opp: Opportunity, db: Session) -> dict:
     profile = load_profile()
 
     story_modules_text = "\n".join(
@@ -126,3 +204,56 @@ Create a practical action plan using the create_action_plan tool. Be specific an
             return block.input
 
     return {"todos": [], "email_drafts": [], "content_outline": {}}
+
+
+def _create_membership_plan(opp: Opportunity, db: Session) -> dict:
+    profile = load_profile()
+
+    achievements_text = "\n".join(f"  - {a}" for a in profile["achievements"])
+
+    prompt = f"""You are creating an action plan to help a software engineer apply for a selective professional membership as part of an O-1A immigration petition.
+
+The USCIS criterion being targeted: "Membership in associations that require outstanding achievements of their members as judged by recognized national or international experts."
+
+Beneficiary profile:
+- Role: {profile['bio']['short']}
+- Full bio: {profile['bio']['full']}
+- Key achievements:
+{achievements_text}
+
+Membership opportunity:
+- Organization: {opp.host} ({opp.host_domain})
+- Eligibility requirements: {opp.requirements}
+- Deadline: {opp.deadline} ({opp.deadline_status})
+- Effort: {opp.effort} — {opp.effort_rationale}
+- Application URL: {opp.source_url}
+
+Create a practical membership application plan using the create_action_plan tool:
+- todos: ordered steps to complete the application (gathering docs, contacting nominators, writing statement, submitting)
+- email_drafts: one per nominator you recommend reaching out to — personalized, ready to send
+- membership_statement: draft personal statement + nominator suggestions + talking points grounded in the beneficiary's actual work
+
+Be specific. Reference the eligibility criteria directly when drafting the personal statement and talking points."""
+
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        tools=[MEMBERSHIP_PLAN_TOOL],
+        tool_choice={"type": "tool", "name": "create_action_plan"},
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    db.add(AuditLog(
+        opportunity_id=opp.id,
+        direction="llm",
+        payload={"model": "claude-haiku-4-5-20251001", "task": "membership_planning", "opportunity_id": opp.id},
+        response={"stop_reason": response.stop_reason},
+        timestamp=datetime.utcnow(),
+    ))
+    db.commit()
+
+    for block in response.content:
+        if block.type == "tool_use" and block.name == "create_action_plan":
+            return block.input
+
+    return {"todos": [], "email_drafts": [], "membership_statement": {}}
