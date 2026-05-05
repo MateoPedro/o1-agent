@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 
 class OpportunityCreate(BaseModel):
-    type: Literal["judge", "member", "talk", "blog", "article"]
+    type: Literal["judge", "member", "talk", "blog", "article", "media"]
     host: str
     host_domain: str
     topic_tags: list[str]

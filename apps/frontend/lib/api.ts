@@ -41,11 +41,18 @@ export interface MembershipStatement {
   application_window_note: string
 }
 
+export interface Pitch {
+  suggested_angle: string
+  talking_points: string[]
+  follow_up_note: string
+}
+
 export interface ActionPlan {
   todos: TodoItem[]
   email_drafts: EmailDraft[]
   content_outline?: ContentOutline
   membership_statement?: MembershipStatement
+  pitch?: Pitch
 }
 
 export interface Draft {
@@ -81,8 +88,10 @@ export interface Opportunity {
   draft?: Draft | null
 }
 
-export async function fetchInbox(limit = 10): Promise<Opportunity[]> {
-  const res = await fetch(`${API_BASE}/inbox?limit=${limit}`)
+export async function fetchInbox(limit = 20, types?: string[]): Promise<Opportunity[]> {
+  const params = new URLSearchParams({ limit: String(limit) })
+  if (types && types.length > 0) params.set("type", types.join(","))
+  const res = await fetch(`${API_BASE}/inbox?${params}`)
   if (!res.ok) throw new Error("Failed to fetch inbox")
   return res.json()
 }

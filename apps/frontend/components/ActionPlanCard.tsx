@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail, Send, Trophy, CheckCircle } from "lucide-react"
 import { useToggleTodo, useSendEmail, useAcceptOpportunity, useLogEvidence } from "@/lib/queries"
-import type { Opportunity, TodoItem, EmailDraft, ContentOutline, MembershipStatement } from "@/lib/api"
+import type { Opportunity, TodoItem, EmailDraft, ContentOutline, MembershipStatement, Pitch } from "@/lib/api"
 
 const STATUS_STYLES: Record<string, string> = {
   in_progress: "bg-indigo-50 text-indigo-700 border-indigo-100",
@@ -189,6 +189,58 @@ function ContentOutlineSection({ outline }: { outline: ContentOutline }) {
   )
 }
 
+function PitchSection({ pitch }: { pitch: Pitch }) {
+  const [open, setOpen] = useState<string | null>(null)
+  const toggle = (s: string) => setOpen(open === s ? null : s)
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Pitch Strategy</p>
+      <div className="flex flex-col gap-1.5">
+
+        {/* Suggested angle */}
+        <div className="bg-rose-50 border border-rose-100 rounded-xl px-3 py-2.5">
+          <p className="text-xs font-medium text-rose-700 mb-1">Suggested angle</p>
+          <p className="text-xs text-rose-800 leading-relaxed">{pitch.suggested_angle}</p>
+        </div>
+
+        {/* Talking points */}
+        {pitch.talking_points?.length > 0 && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+              onClick={() => toggle("points")}
+            >
+              <span className="text-sm font-medium text-slate-700">Talking Points</span>
+              {open === "points" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+            </button>
+            {open === "points" && (
+              <div className="px-3 pb-3 border-t border-slate-100">
+                <ul className="flex flex-col gap-1.5 mt-2">
+                  {pitch.talking_points.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-slate-300 text-xs mt-0.5 flex-shrink-0">·</span>
+                      <span className="text-xs text-slate-700 leading-relaxed">{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Follow-up note */}
+        {pitch.follow_up_note && (
+          <p className="text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 leading-relaxed italic">
+            Follow-up: {pitch.follow_up_note}
+          </p>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
 function MembershipStatementSection({ statement }: { statement: MembershipStatement }) {
   const [openSection, setOpenSection] = useState<string | null>(null)
   const toggle = (s: string) => setOpenSection(openSection === s ? null : s)
@@ -352,6 +404,9 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
             <TodoList todos={plan.todos} draftId={draftId} />
           )}
           {draftId && <EmailDraftSection drafts={plan.email_drafts ?? []} draftId={draftId} />}
+          {plan.pitch && (
+            <PitchSection pitch={plan.pitch} />
+          )}
           {plan.membership_statement && (
             <MembershipStatementSection statement={plan.membership_statement} />
           )}

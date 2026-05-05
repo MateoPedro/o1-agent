@@ -8,26 +8,21 @@ import { Nav } from "@/components/Nav"
 
 const SLICE_TABS = [
   { label: "Speaking", types: ["talk", "judge", "blog", "article"] },
+  { label: "Media", types: ["media"] },
   { label: "Memberships", types: ["member"] },
 ]
 
 export default function InboxPage() {
-  const [limit, setLimit] = useState(10)
+  const [limit, setLimit] = useState(20)
   const [slice, setSlice] = useState(0)
-  const { data: opportunities, isLoading, error, refetch, isFetching } = useInbox(limit)
+  const activeTypes = SLICE_TABS[slice].types
+  const { data: opportunities, isLoading, error, refetch, isFetching } = useInbox(limit, activeTypes)
   const { data: pipeline } = usePipeline()
   const { data: evidence } = useEvidence()
 
-  const filtered = opportunities?.filter((o) =>
-    SLICE_TABS[slice].types.includes(o.type)
-  )
-
-  const countFor = (i: number) =>
-    opportunities?.filter((o) => SLICE_TABS[i].types.includes(o.type)).length ?? 0
-
   const avgScore =
-    filtered && filtered.length > 0
-      ? filtered.reduce((s, o) => s + (o.priority_score ?? 0), 0) / filtered.length
+    opportunities && opportunities.length > 0
+      ? opportunities.reduce((s, o) => s + (o.priority_score ?? 0), 0) / opportunities.length
       : null
 
   return (
@@ -51,11 +46,9 @@ export default function InboxPage() {
               }`}
             >
               {t.label}
-              {countFor(i) > 0 && (
-                <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-semibold ${
-                  slice === i ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-500"
-                }`}>
-                  {countFor(i)}
+              {slice === i && opportunities && opportunities.length > 0 && (
+                <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-semibold bg-indigo-100 text-indigo-600">
+                  {opportunities.length}
                 </span>
               )}
             </button>
@@ -63,10 +56,10 @@ export default function InboxPage() {
 
           {/* Stats + controls pushed to the right */}
           <div className="flex items-center gap-4 ml-auto pb-1">
-            {filtered && filtered.length > 0 && (
+            {opportunities && opportunities.length > 0 && (
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-slate-500">
-                  <strong className="text-slate-900">{filtered.length}</strong> opportunities
+                  <strong className="text-slate-900">{opportunities.length}</strong> opportunities
                 </span>
                 {avgScore !== null && (
                   <span className="text-slate-500">
@@ -110,7 +103,7 @@ export default function InboxPage() {
           </div>
         )}
 
-        {!isLoading && filtered?.length === 0 && (
+        {!isLoading && opportunities?.length === 0 && (
           <div className="text-center py-24">
             <p className="text-slate-500 font-medium">No {SLICE_TABS[slice].label.toLowerCase()} opportunities yet.</p>
             <p className="text-slate-400 text-sm mt-1">
@@ -122,7 +115,7 @@ export default function InboxPage() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filtered?.map((opp) => (
+          {opportunities?.map((opp) => (
             <OpportunityCard key={opp.id} opp={opp} />
           ))}
         </div>

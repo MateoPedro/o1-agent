@@ -11,32 +11,39 @@ DEFAULT_PROMPT_NAME = "speaking_discovery"
 DEFAULT_PROMPT_VERSION = 1
 DEFAULT_PROMPT_BODY = """You are helping build an O-1A immigration case by finding open speaking opportunities at tech events.
 
-Search for currently open calls for speakers, panelists, or workshop presenters at conferences, summits, meetups, and online events relevant to these domains:
-- AI agents and agentic systems
-- Age verification and child safety online
-- Model Context Protocol (MCP)
-- AI safety
-- Social media regulation and compliance
-- Software engineering (production systems, eng culture, career growth, big tech)
-- Immigration and breaking into tech as a foreigner (international student → US tech career)
+The beneficiary is a Software Engineer IC4 at Meta Platforms (~2 years experience). Key background:
+- Built compliance systems for Australia's world-first social media Under-16 law (~544K account actions across Instagram, Facebook, Threads) — already covered by TIME, CNBC, PBS NewsHour, making this a proven newsworthy story
+- Engineered anti-circumvention systems protecting 50M+ US teenagers on Instagram and Facebook — covered by Washington Post, Fox News
+- Migrated 60+ agentic AI tools to MCP at Meta, improving production AI response latency 20%
+- Promoted IC3→IC4 in under a year (typical timeline: 2–3 years)
+- From France, navigated F-1 visa → US tech career at Meta
+Domains: AI agents, MCP, agentic systems, age verification, child safety, social media regulation, software engineering culture, immigration/breaking into US tech as a foreigner.
 
-Location preference: Bay Area (San Francisco, San Jose, Berkeley) or virtual/remote events. Include global events if highly relevant, but flag the location clearly — it will be factored into scoring.
+Search broadly for currently open calls for speakers, panelists, or workshop presenters at conferences, summits, meetups, and online events where this profile would be a strong fit. Do not limit yourself to events you already know — use web search to find CFPs currently open or closing soon. Look across:
+
+- **AI/ML and developer conferences** with open CFPs (AI agents, LLM tooling, MCP, agentic systems, production AI)
+- **Child safety, social media policy, and digital rights events** — the Australia enforcement work is directly relevant and nationally covered
+- **Software engineering and big tech culture events** (eng career growth, IC promotions, production systems)
+- **Immigration and international career events** (F-1 to full-time, breaking into US tech as a foreigner)
+- **Meetups and online events** — lower prestige but faster to get accepted; useful for building a speaking record
+
+Location preference: Bay Area (San Francisco, San Jose, Berkeley) or virtual/remote. Include international events if highly relevant — flag the location clearly, it will be factored into scoring.
 
 For each open call you find, return structured data using the return_opportunities tool. Include:
 - Event name and host organization
-- Host domain (website URL of the org)
+- Host domain
 - Event format: conference, meetup, panel, workshop, or online
 - Location: city name or "virtual"
-- Topic tags (pick 2-5 relevant tags)
-- Application deadline (ISO date string YYYY-MM-DD if known, otherwise null)
-- Deadline status: "specific" if there is a hard deadline date, "rolling" if applications are ongoing with no fixed cutoff, "unknown" if you could not determine this
-- Event date (ISO date string YYYY-MM-DD when the event takes place, null if unknown or recurring)
-- Requirements: what the event asks for (abstract length, bio, topics, etc.)
-- Effort to apply: low (< 30 min), medium (30–90 min), or high (> 90 min), plus a one-sentence explanation of why
-- URL to the speaker application or call for speakers page
+- Topic tags (2–5 relevant tags)
+- Application deadline (ISO date YYYY-MM-DD if known, otherwise null)
+- Deadline status: "specific" if hard cutoff known, "rolling" if no fixed cutoff, "unknown" if unclear
+- Event date (ISO date YYYY-MM-DD when the event takes place, null if unknown)
+- Requirements: what the event asks for (abstract length, bio, topics, format, etc.)
+- Effort: low (<30 min), medium (30–90 min), high (>90 min), plus a one-sentence rationale
+- URL to the speaker application or CFP page
 
-Prioritize events with clear professional recognition, named speaker credits, and international or national reach.
-Return up to 10 results."""
+Prioritize events with named speaker credits, professional recognition, and national or international reach. Surface smaller or niche events too — scoring will filter them.
+Return up to 12 results."""
 
 
 def get_active_prompt(db: Session) -> tuple[str, int]:

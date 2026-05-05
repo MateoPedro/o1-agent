@@ -25,6 +25,15 @@ MEMBERSHIP_WEIGHTS = {
     "location": 0.00,
 }
 
+# Media weights — prestige (audience/outlet reputation) and fit dominate; location irrelevant
+MEDIA_WEIGHTS = {
+    "fit":      0.35,
+    "prestige": 0.35,
+    "evidence": 0.20,
+    "effort":   0.10,
+    "location": 0.00,
+}
+
 LOCATION_SCORES = {
     "virtual": 1.0,
     "remote": 1.0,
@@ -87,8 +96,27 @@ def score_opportunity(opp: Opportunity, db: Session) -> None:
     """Scores the opportunity in-place and commits to DB."""
     profile = load_profile()
     is_membership = opp.type == "member"
+    is_media = opp.type == "media"
 
-    if is_membership:
+    if is_media:
+        context_lines = (
+            f"- Outlet: {opp.host} ({opp.host_domain})\n"
+            f"- Platform type: {opp.type}\n"
+            f"- Topic tags: {opp.topic_tags}\n"
+            f"- Deadline: {opp.deadline}\n"
+            f"- Effort: {opp.effort}\n"
+            f"- Requirements: {opp.requirements[:400]}"
+        )
+        scoring_note = (
+            "Score as a media appearance opportunity. "
+            "Fit (0.35) reflects how well the beneficiary's story matches this outlet's audience. "
+            "Prestige (0.35) reflects the outlet's reach and recognition — major publications, "
+            "established podcasts, and widely-read newsletters score higher. "
+            "Evidence (0.20) reflects how strongly a feature here would support the USCIS "
+            "'published material about the beneficiary' criterion. "
+            "Location is irrelevant."
+        )
+    elif is_membership:
         context_lines = (
             f"- Host: {opp.host} ({opp.host_domain})\n"
             f"- Membership type: {opp.type}\n"
@@ -149,8 +177,13 @@ Use the score_opportunity tool."""
     for block in response.content:
         if block.type == "tool_use" and block.name == "score_opportunity":
             s = block.input
-            weights = MEMBERSHIP_WEIGHTS if is_membership else WEIGHTS
-            loc_score = 0.0 if is_membership else _location_score(opp.location)
+            if is_membership:
+                weights = MEMBERSHIP_WEIGHTS
+            elif is_media:
+                weights = MEDIA_WEIGHTS
+            else:
+                weights = WEIGHTS
+            loc_score = 0.0 if (is_membership or is_media) else _location_score(opp.location)
 
             opp.fit_score = s["fit"]
             opp.prestige_score = s["prestige"]

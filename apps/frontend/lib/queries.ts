@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { fetchInbox, fetchPipeline, createPlan, toggleTodo, sendEmail, acceptOpportunity, logEvidence, fetchEvidence } from "./api"
 
-export function useInbox(limit = 10) {
+export function useInbox(limit = 20, types?: string[]) {
   return useQuery({
-    queryKey: ["inbox", limit],
-    queryFn: () => fetchInbox(limit),
+    queryKey: ["inbox", limit, types],
+    queryFn: () => fetchInbox(limit, types),
     refetchInterval: 60_000,
   })
 }

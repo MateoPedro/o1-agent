@@ -8,7 +8,7 @@ class Opportunity(Base):
     __tablename__ = "opportunities"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    type: Mapped[str] = mapped_column(String(20))           # judge | member | talk | blog | article
+    type: Mapped[str] = mapped_column(String(20))           # judge | member | talk | blog | article | media
     host: Mapped[str] = mapped_column(String(255))
     host_domain: Mapped[str] = mapped_column(String(255))
     topic_tags: Mapped[list] = mapped_column(JSON)

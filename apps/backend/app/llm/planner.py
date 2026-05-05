@@ -145,9 +145,71 @@ MEMBERSHIP_PLAN_TOOL = {
 }
 
 
+MEDIA_PLAN_TOOL = {
+    "name": "create_action_plan",
+    "description": "Create an action plan for pitching this media outlet for a feature or guest appearance.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "todos": {
+                "type": "array",
+                "description": "Ordered steps to research, pitch, and follow up with this outlet.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "task": {"type": "string", "description": "Short action title (under 10 words)"},
+                        "detail": {"type": "string", "description": "Specific instructions: what to do, where, by when."},
+                        "completed": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "task", "detail", "completed"],
+                },
+            },
+            "email_drafts": {
+                "type": "array",
+                "description": "Ready-to-send pitch email(s) to the host or editor. Should be personalized, concise, and lead with the most compelling story angle.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "to": {"type": "string", "description": "Recipient role e.g. 'Podcast host' or editor email if known"},
+                        "subject": {"type": "string"},
+                        "body": {"type": "string", "description": "Full pitch email body, ready to send"},
+                        "sent": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "to", "subject", "body", "sent"],
+                },
+            },
+            "pitch": {
+                "type": "object",
+                "properties": {
+                    "suggested_angle": {
+                        "type": "string",
+                        "description": "The specific story angle that best fits this outlet's audience — 2–3 sentences on what the episode/feature would be about.",
+                    },
+                    "talking_points": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "4–5 concrete things from the beneficiary's work to highlight — specific metrics, stories, or insights that would resonate with this audience.",
+                    },
+                    "follow_up_note": {
+                        "type": "string",
+                        "description": "What to say in a follow-up if no reply in 2 weeks.",
+                    },
+                },
+                "required": ["suggested_angle", "talking_points", "follow_up_note"],
+            },
+        },
+        "required": ["todos", "email_drafts", "pitch"],
+    },
+}
+
+
 def create_action_plan(opp: Opportunity, db: Session) -> dict:
     if opp.type == "member":
         return _create_membership_plan(opp, db)
+    if opp.type == "media":
+        return _create_media_plan(opp, db)
     return _create_speaking_plan(opp, db)
 
 
@@ -257,3 +319,59 @@ Be specific. Reference the eligibility criteria directly when drafting the perso
             return block.input
 
     return {"todos": [], "email_drafts": [], "membership_statement": {}}
+
+
+def _create_media_plan(opp: Opportunity, db: Session) -> dict:
+    profile = load_profile()
+
+    achievements_text = "\n".join(f"  - {a}" for a in profile["achievements"])
+
+    prompt = f"""You are creating an action plan to help a software engineer pitch a media outlet for a guest appearance or feature story, as part of an O-1A immigration petition.
+
+The USCIS criterion being targeted: "Published material about the beneficiary in professional or major media."
+
+Beneficiary profile:
+- Role: {profile['bio']['short']}
+- Full bio: {profile['bio']['full']}
+- Key achievements:
+{achievements_text}
+- Existing media coverage: TIME, CNBC, PBS NewsHour (Australia Under-16 law), Washington Post, Fox News (Teen Accounts)
+
+Media outlet:
+- Outlet: {opp.host} ({opp.host_domain})
+- How to pitch: {opp.requirements}
+- Deadline: {opp.deadline} ({opp.deadline_status})
+- Effort: {opp.effort} — {opp.effort_rationale}
+- Pitch URL: {opp.source_url}
+- Topic tags: {', '.join(opp.topic_tags)}
+- Score rationale: {opp.score_rationale}
+
+Create a media pitch plan using the create_action_plan tool:
+- todos: ordered steps (research the outlet, personalize pitch, send, follow up)
+- email_drafts: a ready-to-send pitch email — concise, personalized to this specific outlet's audience, leading with the most compelling story angle. Do NOT write a generic pitch.
+- pitch: the suggested angle for this specific outlet, 4–5 concrete talking points, and a follow-up message
+
+The pitch email must feel like it was written for this outlet specifically — reference their audience, their format, and why this story is timely and relevant to their readers/listeners right now."""
+
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        tools=[MEDIA_PLAN_TOOL],
+        tool_choice={"type": "tool", "name": "create_action_plan"},
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    db.add(AuditLog(
+        opportunity_id=opp.id,
+        direction="llm",
+        payload={"model": "claude-haiku-4-5-20251001", "task": "media_planning", "opportunity_id": opp.id},
+        response={"stop_reason": response.stop_reason},
+        timestamp=datetime.utcnow(),
+    ))
+    db.commit()
+
+    for block in response.content:
+        if block.type == "tool_use" and block.name == "create_action_plan":
+            return block.input
+
+    return {"todos": [], "email_drafts": [], "pitch": {}}

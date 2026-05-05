@@ -9,6 +9,7 @@ const TYPE_STYLES: Record<string, string> = {
   talk: "bg-indigo-50 text-indigo-700 border-indigo-100",
   judge: "bg-purple-50 text-purple-700 border-purple-100",
   member: "bg-blue-50 text-blue-700 border-blue-100",
+  media: "bg-rose-50 text-rose-700 border-rose-100",
   blog: "bg-orange-50 text-orange-700 border-orange-100",
   article: "bg-pink-50 text-pink-700 border-pink-100",
 }

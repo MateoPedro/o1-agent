@@ -14,6 +14,7 @@ const STATUS_TABS = [
 const TYPE_FILTERS = [
   { label: "All", types: null },
   { label: "Speaking", types: ["talk", "judge", "blog", "article"] },
+  { label: "Media", types: ["media"] },
   { label: "Memberships", types: ["member"] },
 ]
 
@@ -32,9 +33,8 @@ export default function PipelinePage() {
 
   const countFor = (i: number) => byStatus(i).length
 
-  const hasMemberships = opportunities?.some(o => o.type === "member")
-  const hasSpeaking = opportunities?.some(o => o.type !== "member")
-  const showTypeFilter = hasMemberships && hasSpeaking
+  const types = new Set(opportunities?.map(o => o.type) ?? [])
+  const showTypeFilter = types.size > 1
 
   return (
     <div className="min-h-screen bg-slate-50">

@@ -43,33 +43,32 @@ def health():
 
 @app.get("/inbox", response_model=list[OpportunityOut])
 def inbox(
-    limit: int = Query(default=None),
+    limit: int = Query(default=20),
+    type: str = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    cap = limit or settings.weekly_max_actions
     today = date.today()
-    opportunities = (
+    q = (
         db.query(models.Opportunity)
         .filter(models.Opportunity.status == "discovered")
         .filter(models.Opportunity.priority_score.isnot(None))
-        # Exclude if application deadline has passed
         .filter(
             or_(
                 models.Opportunity.deadline_status != "specific",
                 models.Opportunity.deadline >= today,
             )
         )
-        # Exclude if the event itself has already happened
         .filter(
             or_(
                 models.Opportunity.event_date.is_(None),
                 models.Opportunity.event_date >= today,
             )
         )
-        .order_by(models.Opportunity.priority_score.desc())
-        .limit(cap)
-        .all()
     )
+    if type:
+        types = type.split(",")
+        q = q.filter(models.Opportunity.type.in_(types))
+    opportunities = q.order_by(models.Opportunity.priority_score.desc()).limit(limit).all()
     return opportunities
 
 
