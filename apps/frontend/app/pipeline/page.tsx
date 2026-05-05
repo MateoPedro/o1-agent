@@ -13,7 +13,8 @@ const STATUS_TABS = [
 
 const TYPE_FILTERS = [
   { label: "All", types: null },
-  { label: "Speaking", types: ["talk", "judge", "blog", "article"] },
+  { label: "Speaking", types: ["talk", "blog", "article"] },
+  { label: "Judging", types: ["judge"] },
   { label: "Media", types: ["media"] },
   { label: "Memberships", types: ["member"] },
 ]

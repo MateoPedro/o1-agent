@@ -47,12 +47,20 @@ export interface Pitch {
   follow_up_note: string
 }
 
+export interface JudgingApplication {
+  why_qualified: string
+  domain_expertise: string[]
+  evaluation_approach: string
+  availability_note: string
+}
+
 export interface ActionPlan {
   todos: TodoItem[]
   email_drafts: EmailDraft[]
   content_outline?: ContentOutline
   membership_statement?: MembershipStatement
   pitch?: Pitch
+  judging_application?: JudgingApplication
 }
 
 export interface Draft {

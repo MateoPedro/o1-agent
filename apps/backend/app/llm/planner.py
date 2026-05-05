@@ -205,11 +205,77 @@ MEDIA_PLAN_TOOL = {
 }
 
 
+JUDGING_PLAN_TOOL = {
+    "name": "create_action_plan",
+    "description": "Create an action plan for applying or expressing interest in a judging/evaluation role.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "todos": {
+                "type": "array",
+                "description": "Ordered steps to apply, confirm availability, and complete the judging role.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "task": {"type": "string", "description": "Short action title (under 10 words)"},
+                        "detail": {"type": "string", "description": "Specific instructions: what to do, where, by when."},
+                        "completed": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "task", "detail", "completed"],
+                },
+            },
+            "email_drafts": {
+                "type": "array",
+                "description": "Ready-to-send outreach emails. Include if there is a direct contact (organizer, program chair) to reach out to. Leave empty if the process is purely form-based.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "to": {"type": "string", "description": "Recipient role e.g. 'Hackathon Organizer' or email if known"},
+                        "subject": {"type": "string"},
+                        "body": {"type": "string", "description": "Full email body, personalized and ready to send"},
+                        "sent": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "to", "subject", "body", "sent"],
+                },
+            },
+            "judging_application": {
+                "type": "object",
+                "properties": {
+                    "why_qualified": {
+                        "type": "string",
+                        "description": "2–3 sentences explaining why the beneficiary is qualified to judge this specific event/program. Ground it in actual work — specific projects, metrics, or domain expertise.",
+                    },
+                    "domain_expertise": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Specific technical and domain areas the beneficiary can evaluate (e.g. 'AI agents and LLM tool use', 'social media compliance systems', 'developer tooling').",
+                    },
+                    "evaluation_approach": {
+                        "type": "string",
+                        "description": "2–3 sentences on how the beneficiary would approach evaluating submissions — what criteria matter, what distinguishes strong from weak entries in this domain.",
+                    },
+                    "availability_note": {
+                        "type": "string",
+                        "description": "Brief note on time commitment expectations and any scheduling considerations.",
+                    },
+                },
+                "required": ["why_qualified", "domain_expertise", "evaluation_approach", "availability_note"],
+            },
+        },
+        "required": ["todos", "email_drafts", "judging_application"],
+    },
+}
+
+
 def create_action_plan(opp: Opportunity, db: Session) -> dict:
     if opp.type == "member":
         return _create_membership_plan(opp, db)
     if opp.type == "media":
         return _create_media_plan(opp, db)
+    if opp.type == "judge":
+        return _create_judging_plan(opp, db)
     return _create_speaking_plan(opp, db)
 
 
@@ -375,3 +441,59 @@ The pitch email must feel like it was written for this outlet specifically — r
             return block.input
 
     return {"todos": [], "email_drafts": [], "pitch": {}}
+
+
+def _create_judging_plan(opp: Opportunity, db: Session) -> dict:
+    profile = load_profile()
+
+    achievements_text = "\n".join(f"  - {a}" for a in profile["achievements"])
+
+    prompt = f"""You are creating an action plan to help a software engineer apply for or express interest in a judging/evaluation role as part of an O-1A immigration petition.
+
+The USCIS criterion being targeted: "Participation, either individually or on a panel, as a judge of the work of others in the same or an allied field."
+
+Beneficiary profile:
+- Role: {profile['bio']['short']}
+- Full bio: {profile['bio']['full']}
+- Key achievements:
+{achievements_text}
+
+Judging opportunity:
+- Organization: {opp.host} ({opp.host_domain})
+- Role type: {opp.type}
+- Topic tags: {', '.join(opp.topic_tags)}
+- Event date: {opp.event_date}
+- Deadline: {opp.deadline} ({opp.deadline_status})
+- Requirements: {opp.requirements}
+- Effort: {opp.effort} — {opp.effort_rationale}
+- Application URL: {opp.source_url}
+
+Create a practical action plan using the create_action_plan tool:
+- todos: ordered steps to apply, confirm participation, and fulfill the role
+- email_drafts: outreach email(s) if direct contact is appropriate (organizers, program chairs) — personalized to this specific event; skip if purely form-based
+- judging_application: why the beneficiary is qualified, their domain expertise relevant to what's being judged, how they'd approach evaluation, and availability notes
+
+Be specific to this event. The "why_qualified" and "evaluation_approach" should directly reference the beneficiary's actual work — compliance systems, AI agents/MCP, age verification — not generic software engineering. These will be used verbatim in applications."""
+
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        tools=[JUDGING_PLAN_TOOL],
+        tool_choice={"type": "tool", "name": "create_action_plan"},
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    db.add(AuditLog(
+        opportunity_id=opp.id,
+        direction="llm",
+        payload={"model": "claude-haiku-4-5-20251001", "task": "judging_planning", "opportunity_id": opp.id},
+        response={"stop_reason": response.stop_reason},
+        timestamp=datetime.utcnow(),
+    ))
+    db.commit()
+
+    for block in response.content:
+        if block.type == "tool_use" and block.name == "create_action_plan":
+            return block.input
+
+    return {"todos": [], "email_drafts": [], "judging_application": {}}

@@ -34,6 +34,15 @@ MEDIA_WEIGHTS = {
     "location": 0.00,
 }
 
+# Judging weights — evidence dominates (direct USCIS criterion); prestige of the program matters
+JUDGING_WEIGHTS = {
+    "fit":      0.15,
+    "prestige": 0.30,
+    "evidence": 0.45,
+    "effort":   0.05,
+    "location": 0.05,
+}
+
 LOCATION_SCORES = {
     "virtual": 1.0,
     "remote": 1.0,
@@ -97,8 +106,30 @@ def score_opportunity(opp: Opportunity, db: Session) -> None:
     profile = load_profile()
     is_membership = opp.type == "member"
     is_media = opp.type == "media"
+    is_judging = opp.type == "judge"
 
-    if is_media:
+    if is_judging:
+        context_lines = (
+            f"- Host: {opp.host} ({opp.host_domain})\n"
+            f"- Role type: {opp.type}\n"
+            f"- Topic tags: {opp.topic_tags}\n"
+            f"- Event date: {opp.event_date}\n"
+            f"- Deadline: {opp.deadline}\n"
+            f"- Effort: {opp.effort}\n"
+            f"- Requirements: {opp.requirements[:400]}"
+        )
+        scoring_note = (
+            "Score as a judging/evaluation opportunity for an O-1A petition. "
+            "Evidence (0.45) is the dominant factor — does participating as a judge here "
+            "directly satisfy the USCIS 'judging the work of others' criterion? "
+            "Formally invited roles score higher than open applications. "
+            "Prestige (0.30) reflects how recognized the program is nationally or internationally "
+            "(MLH, major university hackathons, YC demo days score high). "
+            "Fit (0.15) reflects how well the beneficiary's technical domains match what's being judged. "
+            "Effort (0.05) is de-emphasized — a high-effort judging role is still worth pursuing. "
+            "Location (0.05) is low weight — virtual is fine, Bay Area in-person is a small bonus."
+        )
+    elif is_media:
         context_lines = (
             f"- Outlet: {opp.host} ({opp.host_domain})\n"
             f"- Platform type: {opp.type}\n"
@@ -181,6 +212,8 @@ Use the score_opportunity tool."""
                 weights = MEMBERSHIP_WEIGHTS
             elif is_media:
                 weights = MEDIA_WEIGHTS
+            elif is_judging:
+                weights = JUDGING_WEIGHTS
             else:
                 weights = WEIGHTS
             loc_score = 0.0 if (is_membership or is_media) else _location_score(opp.location)

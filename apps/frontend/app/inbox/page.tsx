@@ -7,7 +7,8 @@ import { OpportunityCard } from "@/components/OpportunityCard"
 import { Nav } from "@/components/Nav"
 
 const SLICE_TABS = [
-  { label: "Speaking", types: ["talk", "judge", "blog", "article"] },
+  { label: "Speaking", types: ["talk", "blog", "article"] },
+  { label: "Judging", types: ["judge"] },
   { label: "Media", types: ["media"] },
   { label: "Memberships", types: ["member"] },
 ]
@@ -107,9 +108,10 @@ export default function InboxPage() {
           <div className="text-center py-24">
             <p className="text-slate-500 font-medium">No {SLICE_TABS[slice].label.toLowerCase()} opportunities yet.</p>
             <p className="text-slate-400 text-sm mt-1">
-              {slice === 0
-                ? "Run the speaking discovery task to populate the inbox."
-                : "Run the membership discovery task to populate the inbox."}
+              {slice === 0 && "Run the speaking discovery task to populate the inbox."}
+              {slice === 1 && "Run the judging discovery task to populate the inbox."}
+              {slice === 2 && "Run the media discovery task to populate the inbox."}
+              {slice === 3 && "Run the membership discovery task to populate the inbox."}
             </p>
           </div>
         )}

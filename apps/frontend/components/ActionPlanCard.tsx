@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail, Send, Trophy, CheckCircle } from "lucide-react"
 import { useToggleTodo, useSendEmail, useAcceptOpportunity, useLogEvidence } from "@/lib/queries"
-import type { Opportunity, TodoItem, EmailDraft, ContentOutline, MembershipStatement, Pitch } from "@/lib/api"
+import type { Opportunity, TodoItem, EmailDraft, ContentOutline, MembershipStatement, Pitch, JudgingApplication } from "@/lib/api"
 
 const STATUS_STYLES: Record<string, string> = {
   in_progress: "bg-indigo-50 text-indigo-700 border-indigo-100",
@@ -337,6 +337,65 @@ function MembershipStatementSection({ statement }: { statement: MembershipStatem
   )
 }
 
+function JudgingApplicationSection({ application }: { application: JudgingApplication }) {
+  const [openSection, setOpenSection] = useState<string | null>(null)
+  const toggle = (s: string) => setOpenSection(openSection === s ? null : s)
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Judging Application</p>
+      <div className="flex flex-col gap-1.5">
+
+        {/* Why qualified */}
+        <div className="bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5">
+          <p className="text-xs font-medium text-purple-700 mb-1">Why qualified</p>
+          <p className="text-xs text-purple-800 leading-relaxed">{application.why_qualified}</p>
+        </div>
+
+        {/* Domain expertise */}
+        {application.domain_expertise?.length > 0 && (
+          <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5">
+            <p className="text-xs font-medium text-slate-500 mb-2">Evaluation domains</p>
+            <div className="flex flex-wrap gap-1.5">
+              {application.domain_expertise.map((d, i) => (
+                <span key={i} className="text-xs bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-full">
+                  {d}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Evaluation approach */}
+        {application.evaluation_approach && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+              onClick={() => toggle("approach")}
+            >
+              <span className="text-sm font-medium text-slate-700">Evaluation Approach</span>
+              {openSection === "approach" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+            </button>
+            {openSection === "approach" && (
+              <div className="px-3 pb-3 border-t border-slate-100">
+                <p className="text-xs text-slate-600 leading-relaxed mt-2">{application.evaluation_approach}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Availability note */}
+        {application.availability_note && (
+          <p className="text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 leading-relaxed italic">
+            {application.availability_note}
+          </p>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
 const REPLY_STYLES = {
   accepted: { banner: "bg-emerald-50 border-emerald-200", text: "text-emerald-700", label: "Accepted" },
   rejected: { banner: "bg-red-50 border-red-200", text: "text-red-600", label: "Rejected" },
@@ -406,6 +465,9 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
           {draftId && <EmailDraftSection drafts={plan.email_drafts ?? []} draftId={draftId} />}
           {plan.pitch && (
             <PitchSection pitch={plan.pitch} />
+          )}
+          {plan.judging_application && (
+            <JudgingApplicationSection application={plan.judging_application} />
           )}
           {plan.membership_statement && (
             <MembershipStatementSection statement={plan.membership_statement} />
