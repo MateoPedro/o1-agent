@@ -26,6 +26,10 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.discover_judging_ops",
         "schedule": crontab(hour=9, minute=0, day_of_week="tuesday"),  # Tuesdays 9am PT
     },
+    "discover-publishing-ops": {
+        "task": "app.tasks.discover_publishing_ops",
+        "schedule": crontab(hour=9, minute=0, day_of_week="thursday"),  # Thursdays 9am PT
+    },
     "poll-outcomes": {
         "task": "app.tasks.poll_outcomes",
         "schedule": crontab(hour=17, minute=0),  # Daily 5pm PT

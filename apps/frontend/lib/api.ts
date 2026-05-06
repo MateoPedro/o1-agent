@@ -54,6 +54,19 @@ export interface JudgingApplication {
   availability_note: string
 }
 
+export interface ArticleOutlineSection {
+  section: string
+  description: string
+}
+
+export interface ArticleOutline {
+  suggested_angle: string
+  title_options: string[]
+  outline: ArticleOutlineSection[]
+  key_data_points: string[]
+  target_word_count?: string | null
+}
+
 export interface ActionPlan {
   todos: TodoItem[]
   email_drafts: EmailDraft[]
@@ -61,6 +74,7 @@ export interface ActionPlan {
   membership_statement?: MembershipStatement
   pitch?: Pitch
   judging_application?: JudgingApplication
+  article_outline?: ArticleOutline
 }
 
 export interface Draft {

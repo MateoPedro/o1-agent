@@ -269,6 +269,83 @@ JUDGING_PLAN_TOOL = {
 }
 
 
+PUBLISHING_PLAN_TOOL = {
+    "name": "create_action_plan",
+    "description": "Create an action plan for pitching and writing an article or guest post for this publication.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "todos": {
+                "type": "array",
+                "description": "Ordered steps: research the outlet, pitch, write, revise, submit.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "task": {"type": "string", "description": "Short action title (under 10 words)"},
+                        "detail": {"type": "string", "description": "Specific instructions: what to do, where, by when."},
+                        "completed": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "task", "detail", "completed"],
+                },
+            },
+            "email_drafts": {
+                "type": "array",
+                "description": "Pitch email(s) to the editor or submissions team. Personalized to this outlet — reference their audience, tone, and why this topic is timely for their readers.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "to": {"type": "string", "description": "Recipient role e.g. 'Submissions Editor' or email if known"},
+                        "subject": {"type": "string"},
+                        "body": {"type": "string", "description": "Full pitch email body, ready to send"},
+                        "sent": {"type": "boolean", "default": False},
+                    },
+                    "required": ["id", "to", "subject", "body", "sent"],
+                },
+            },
+            "article_outline": {
+                "type": "object",
+                "properties": {
+                    "suggested_angle": {
+                        "type": "string",
+                        "description": "The specific angle that will resonate most with this outlet's audience — 2–3 sentences on what the article is about and why it matters to their readers right now.",
+                    },
+                    "title_options": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "3 concrete title options, each taking a different angle (technical deep-dive, opinion/perspective, narrative case study).",
+                    },
+                    "outline": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "section": {"type": "string", "description": "Section heading"},
+                                "description": {"type": "string", "description": "1–2 sentences on what this section covers"},
+                            },
+                            "required": ["section", "description"],
+                        },
+                        "description": "4–6 sections forming a complete article outline.",
+                    },
+                    "key_data_points": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Specific metrics, facts, or story beats from the beneficiary's actual work to include — these are the credibility anchors (e.g. '544K accounts', '50M+ teenagers', '20% latency improvement').",
+                    },
+                    "target_word_count": {
+                        "type": ["string", "null"],
+                        "description": "Recommended word count for this outlet, e.g. '1500–2000 words'",
+                    },
+                },
+                "required": ["suggested_angle", "title_options", "outline", "key_data_points"],
+            },
+        },
+        "required": ["todos", "email_drafts", "article_outline"],
+    },
+}
+
+
 def create_action_plan(opp: Opportunity, db: Session) -> dict:
     if opp.type == "member":
         return _create_membership_plan(opp, db)
@@ -276,6 +353,8 @@ def create_action_plan(opp: Opportunity, db: Session) -> dict:
         return _create_media_plan(opp, db)
     if opp.type == "judge":
         return _create_judging_plan(opp, db)
+    if opp.type in ("article", "blog"):
+        return _create_publishing_plan(opp, db)
     return _create_speaking_plan(opp, db)
 
 
@@ -497,3 +576,66 @@ Be specific to this event. The "why_qualified" and "evaluation_approach" should 
             return block.input
 
     return {"todos": [], "email_drafts": [], "judging_application": {}}
+
+
+def _create_publishing_plan(opp: Opportunity, db: Session) -> dict:
+    profile = load_profile()
+
+    achievements_text = "\n".join(f"  - {a}" for a in profile["achievements"])
+    story_modules_text = "\n".join(
+        f"- {name}: {mod['summary']}"
+        for name, mod in profile["story_modules"].items()
+    )
+
+    prompt = f"""You are creating an action plan to help a software engineer pitch and write an article for a publication, as part of an O-1A immigration petition.
+
+The USCIS criterion being targeted: "Authorship of scholarly articles in the field, in professional journals, or other major media."
+
+Beneficiary profile:
+- Role: {profile['bio']['short']}
+- Full bio: {profile['bio']['full']}
+- Key achievements:
+{achievements_text}
+- Story modules available:
+{story_modules_text}
+- Talk topic seeds: {', '.join(profile['talk_topic_seeds'])}
+
+Publication:
+- Outlet: {opp.host} ({opp.host_domain})
+- Content type: {opp.type}
+- Topic tags: {', '.join(opp.topic_tags)}
+- Deadline: {opp.deadline} ({opp.deadline_status})
+- How to submit: {opp.requirements}
+- Effort: {opp.effort} — {opp.effort_rationale}
+- Submission URL: {opp.source_url}
+- Score rationale: {opp.score_rationale}
+
+Create a practical publishing action plan using the create_action_plan tool:
+- todos: ordered steps (research the outlet's tone and recent articles, pitch or submit, write, revise, submit)
+- email_drafts: a pitch email to the editor that is personalized to this outlet's specific audience and tone — reference what they publish, why this topic is timely, and lead with the most compelling hook from the beneficiary's actual work
+- article_outline: the specific angle for this outlet's audience, 3 title options, a 4–6 section outline, the key data points and metrics to anchor credibility, and recommended word count
+
+The pitch email and article angle must feel written for THIS outlet specifically. Do not write generic content — reference the outlet's audience, their recent coverage if known, and why the beneficiary's work fills a gap or adds a fresh angle to what they cover."""
+
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        tools=[PUBLISHING_PLAN_TOOL],
+        tool_choice={"type": "tool", "name": "create_action_plan"},
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    db.add(AuditLog(
+        opportunity_id=opp.id,
+        direction="llm",
+        payload={"model": "claude-haiku-4-5-20251001", "task": "publishing_planning", "opportunity_id": opp.id},
+        response={"stop_reason": response.stop_reason},
+        timestamp=datetime.utcnow(),
+    ))
+    db.commit()
+
+    for block in response.content:
+        if block.type == "tool_use" and block.name == "create_action_plan":
+            return block.input
+
+    return {"todos": [], "email_drafts": [], "article_outline": {}}

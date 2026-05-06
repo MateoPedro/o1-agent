@@ -43,6 +43,15 @@ JUDGING_WEIGHTS = {
     "location": 0.05,
 }
 
+# Publishing weights — prestige (outlet reach/recognition) and evidence equally dominant; location irrelevant
+PUBLISHING_WEIGHTS = {
+    "fit":      0.20,
+    "prestige": 0.35,
+    "evidence": 0.35,
+    "effort":   0.10,
+    "location": 0.00,
+}
+
 LOCATION_SCORES = {
     "virtual": 1.0,
     "remote": 1.0,
@@ -107,8 +116,28 @@ def score_opportunity(opp: Opportunity, db: Session) -> None:
     is_membership = opp.type == "member"
     is_media = opp.type == "media"
     is_judging = opp.type == "judge"
+    is_publishing = opp.type in ("article", "blog")
 
-    if is_judging:
+    if is_publishing:
+        context_lines = (
+            f"- Outlet: {opp.host} ({opp.host_domain})\n"
+            f"- Content type: {opp.type}\n"
+            f"- Topic tags: {opp.topic_tags}\n"
+            f"- Deadline: {opp.deadline}\n"
+            f"- Effort: {opp.effort}\n"
+            f"- Requirements: {opp.requirements[:400]}"
+        )
+        scoring_note = (
+            "Score as a publishing/authorship opportunity for an O-1A petition. "
+            "Prestige (0.35) and evidence (0.35) are equally dominant. "
+            "Prestige reflects the outlet's reach and recognition — ACM Queue, IEEE Spectrum, "
+            "The Pragmatic Engineer, WIRED score high; personal blogs score low. "
+            "Evidence reflects how directly a bylined article here satisfies the USCIS 'authorship' "
+            "criterion — peer-reviewed journals and major trade press score highest. "
+            "Fit (0.20) reflects how well the beneficiary's domains (AI agents, MCP, age verification, "
+            "child safety) match this outlet's audience. Location is irrelevant."
+        )
+    elif is_judging:
         context_lines = (
             f"- Host: {opp.host} ({opp.host_domain})\n"
             f"- Role type: {opp.type}\n"
@@ -214,9 +243,11 @@ Use the score_opportunity tool."""
                 weights = MEDIA_WEIGHTS
             elif is_judging:
                 weights = JUDGING_WEIGHTS
+            elif is_publishing:
+                weights = PUBLISHING_WEIGHTS
             else:
                 weights = WEIGHTS
-            loc_score = 0.0 if (is_membership or is_media) else _location_score(opp.location)
+            loc_score = 0.0 if (is_membership or is_media or is_publishing) else _location_score(opp.location)
 
             opp.fit_score = s["fit"]
             opp.prestige_score = s["prestige"]

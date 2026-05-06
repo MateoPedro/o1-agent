@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ExternalLink, CheckSquare, Square, ChevronDown, ChevronUp, Copy, Check, Mail, Send, Trophy, CheckCircle } from "lucide-react"
 import { useToggleTodo, useSendEmail, useAcceptOpportunity, useLogEvidence } from "@/lib/queries"
-import type { Opportunity, TodoItem, EmailDraft, ContentOutline, MembershipStatement, Pitch, JudgingApplication } from "@/lib/api"
+import type { Opportunity, TodoItem, EmailDraft, ContentOutline, MembershipStatement, Pitch, JudgingApplication, ArticleOutline } from "@/lib/api"
 
 const STATUS_STYLES: Record<string, string> = {
   in_progress: "bg-indigo-50 text-indigo-700 border-indigo-100",
@@ -337,6 +337,107 @@ function MembershipStatementSection({ statement }: { statement: MembershipStatem
   )
 }
 
+function ArticleOutlineSection({ outline }: { outline: ArticleOutline }) {
+  const [openSection, setOpenSection] = useState<string | null>(null)
+  const toggle = (s: string) => setOpenSection(openSection === s ? null : s)
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Article Outline</p>
+      <div className="flex flex-col gap-1.5">
+
+        {/* Suggested angle */}
+        <div className="bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5">
+          <p className="text-xs font-medium text-orange-700 mb-1">Suggested angle</p>
+          <p className="text-xs text-orange-800 leading-relaxed">{outline.suggested_angle}</p>
+          {outline.target_word_count && (
+            <p className="text-xs text-orange-600 mt-1.5 font-medium">{outline.target_word_count}</p>
+          )}
+        </div>
+
+        {/* Title options */}
+        {outline.title_options?.length > 0 && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+              onClick={() => toggle("titles")}
+            >
+              <span className="text-sm font-medium text-slate-700">Title Options</span>
+              {openSection === "titles" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+            </button>
+            {openSection === "titles" && (
+              <div className="px-3 pb-3 border-t border-slate-100">
+                <ul className="flex flex-col gap-1.5 mt-2">
+                  {outline.title_options.map((t, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-slate-300 text-xs mt-0.5 flex-shrink-0">—</span>
+                      <span className="text-xs text-slate-700 leading-snug">{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Section outline */}
+        {outline.outline?.length > 0 && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+              onClick={() => toggle("outline")}
+            >
+              <span className="text-sm font-medium text-slate-700">Section Outline</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">
+                  {outline.outline.length} sections
+                </span>
+                {openSection === "outline" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+              </div>
+            </button>
+            {openSection === "outline" && (
+              <div className="px-3 pb-3 border-t border-slate-100 flex flex-col gap-2 mt-2">
+                {outline.outline.map((s, i) => (
+                  <div key={i} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                    <p className="text-xs font-semibold text-slate-700">{s.section}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{s.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Key data points */}
+        {outline.key_data_points?.length > 0 && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+              onClick={() => toggle("data")}
+            >
+              <span className="text-sm font-medium text-slate-700">Key Data Points</span>
+              {openSection === "data" ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+            </button>
+            {openSection === "data" && (
+              <div className="px-3 pb-3 border-t border-slate-100">
+                <ul className="flex flex-col gap-1.5 mt-2">
+                  {outline.key_data_points.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-slate-300 text-xs mt-0.5 flex-shrink-0">·</span>
+                      <span className="text-xs text-slate-700 leading-relaxed">{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
 function JudgingApplicationSection({ application }: { application: JudgingApplication }) {
   const [openSection, setOpenSection] = useState<string | null>(null)
   const toggle = (s: string) => setOpenSection(openSection === s ? null : s)
@@ -468,6 +569,9 @@ export function ActionPlanCard({ opp }: { opp: Opportunity }) {
           )}
           {plan.judging_application && (
             <JudgingApplicationSection application={plan.judging_application} />
+          )}
+          {plan.article_outline && (
+            <ArticleOutlineSection outline={plan.article_outline} />
           )}
           {plan.membership_statement && (
             <MembershipStatementSection statement={plan.membership_statement} />
