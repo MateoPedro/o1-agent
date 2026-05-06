@@ -1,5 +1,5 @@
 """Discover open membership application windows for selective professional associations."""
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy.orm import Session
 from anthropic import Anthropic
 from app.config import settings
@@ -105,6 +105,13 @@ def get_active_prompt(db: Session) -> tuple[str, int]:
 def discover_membership_opportunities(db: Session) -> list[dict]:
     prompt_body, prompt_id = get_active_prompt(db)
 
+    dated_prompt = (
+        f"Today's date is {date.today().isoformat()}. "
+        f"Only return opportunities whose event date and application deadline are both in the future (after today). "
+        f"Do not return events that have already happened or deadlines that have passed.\n\n"
+        f"{prompt_body}"
+    )
+
     response = client.messages.create(
         model="claude-opus-4-5",
         max_tokens=8096,
@@ -112,7 +119,7 @@ def discover_membership_opportunities(db: Session) -> list[dict]:
             {"type": "web_search_20250305", "name": "web_search"},
             RETURN_TOOL,
         ],
-        messages=[{"role": "user", "content": prompt_body}],
+        messages=[{"role": "user", "content": dated_prompt}],
     )
 
     db.add(AuditLog(
