@@ -1,7 +1,7 @@
 from app.worker import celery_app
 from app.database import SessionLocal
 from app.models import Opportunity, Draft
-from app.llm.discovery import discover_speaking_opportunities
+from app.llm.speaking_discovery import discover_speaking_opportunities
 from app.llm.membership_discovery import discover_membership_opportunities
 from app.llm.media_discovery import discover_media_opportunities
 from app.llm.judging_discovery import discover_judging_opportunities
