@@ -1,4 +1,4 @@
- need """Discover podcast, newsletter, and media opportunities where the beneficiary can be featured."""
+"""Discover podcast, newsletter, and media opportunities where the beneficiary can be featured."""
 from datetime import datetime, date
 from sqlalchemy.orm import Session
 from anthropic import Anthropic
